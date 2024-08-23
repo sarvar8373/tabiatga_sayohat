@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { postOrganization } from "../../../../http/organizationApi";
 import { getUsers } from "../../../../http/usersApi";
+import { useAuth } from "../../../../context/AuthContext";
 
 export default function OrganizationAdd() {
   const [formData, setFormData] = useState({
@@ -23,8 +24,10 @@ export default function OrganizationAdd() {
     origin_of_goods: "",
     auto_fill_cf_by_contract_id: "",
     accept_discount_offers: "",
-    user_id: "", // Assuming this will be set from authentication context or other means
+    user_id: "",
+    status: "",
   });
+  const { userDetails } = useAuth();
   const [authors, setAuthors] = useState([]);
   useEffect(() => {
     getUsers()
@@ -72,6 +75,7 @@ export default function OrganizationAdd() {
           auto_fill_cf_by_contract_id: "",
           accept_discount_offers: "",
           user_id: "",
+          status: "",
         });
       } else {
         alert("Failed to add organization: " + response.data.Error);
@@ -289,9 +293,26 @@ export default function OrganizationAdd() {
                 ))}
               </select>
             </div>
-            <button className="btn btn-success px-3" type="submit">
-              Yaratish
-            </button>
+            <div className="single-field half-field">
+              {userDetails.role === "admin" && (
+                <div className="form-group my-3">
+                  <select
+                    id="status"
+                    className="form-control"
+                    onChange={handleChange}
+                    value={formData.status}
+                  >
+                    <option value="0">Tasdiqlanmagan</option>
+                    <option value="1">Tasdiqlangan</option>
+                  </select>
+                </div>
+              )}
+            </div>
+            <div className="single-field ">
+              <button className="btn btn-success px-3 mt-5" type="submit">
+                Yaratish
+              </button>
+            </div>
           </div>
         </form>
       </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getRegions, getSelectRegion } from "../../../../http/usersApi";
 import { postTour } from "../../../../http/adobeApi";
+import { useAuth } from "../../../../context/AuthContext";
 
 const Adobe = () => {
   const [regions, setRegions] = useState([]);
@@ -15,9 +16,10 @@ const Adobe = () => {
     price: "",
     price_description: "",
     country: "",
-    status: 0,
+    status: "0", // Use string to match select values
   });
   const [image, setImage] = useState(null);
+  const { userDetails } = useAuth();
 
   useEffect(() => {
     // Fetch regions
@@ -76,9 +78,9 @@ const Adobe = () => {
     data.append("price_description", formData.price_description);
     data.append("tour_type", formData.tour_type);
     data.append("country", formData.country);
-    data.append("region_id", selectedRegion); // Use selectedRegion here
-    data.append("district_id", selectedDistrict); // Use selectedDistrict here
-    data.append("status", formData.status);
+    data.append("region_id", selectedRegion);
+    data.append("district_id", selectedDistrict);
+    data.append("status", formData.status); // Ensure status is added
 
     postTour(data)
       .then((response) => {
@@ -91,7 +93,7 @@ const Adobe = () => {
             price_description: "",
             tour_type: "",
             country: "",
-            status: "",
+            status: "0", // Reset to default value
           });
           setSelectedRegion("");
           setSelectedDistrict("");
@@ -196,6 +198,21 @@ const Adobe = () => {
               ))}
             </select>
           </div>
+          {userDetails.role === "admin" && (
+            <div className="single-field">
+              <label htmlFor="status">Holati</label>
+              <select
+                id="status"
+                name="status"
+                className="form-control"
+                value={formData.status}
+                onChange={handleChange}
+              >
+                <option value="0">Tasdiqlanmagan</option>
+                <option value="1">Tasdiqlangan</option>
+              </select>
+            </div>
+          )}
           <div className="my-3">
             <input
               className="lh-0"

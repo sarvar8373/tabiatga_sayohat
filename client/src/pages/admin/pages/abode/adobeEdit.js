@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { putTour } from "../../../../http/adobeApi";
+import { useAuth } from "../../../../context/AuthContext";
 
 export default function AdobeEdit({
   adobe,
@@ -9,7 +10,7 @@ export default function AdobeEdit({
   onCancel,
 }) {
   const [editadobe, setEditadobe] = useState(adobe);
-
+  const { userDetails } = useAuth();
   useEffect(() => {
     if (adobe) {
       setEditadobe(adobe);
@@ -31,7 +32,8 @@ export default function AdobeEdit({
       !editadobe.price ||
       !editadobe.price_description ||
       !editadobe.region_id ||
-      !editadobe.district_id
+      !editadobe.district_id ||
+      !editadobe.status
     ) {
       alert("Please fill in all required fields.");
       console.log("EditAdobe state:", editadobe.id); // Debug: Log the editadobe state
@@ -46,7 +48,7 @@ export default function AdobeEdit({
     formData.append("price_description", editadobe.price_description); // Ensure this matches the backend
     formData.append("region_id", editadobe.region_id);
     formData.append("district_id", editadobe.district_id);
-
+    formData.append("status", editadobe.status);
     if (editadobe.image instanceof File) {
       formData.append("image", editadobe.image);
     }
@@ -174,6 +176,24 @@ export default function AdobeEdit({
             ))}
           </select>
         </div>
+        {userDetails.role === "admin" && (
+          <div className="form-group my-3">
+            <label htmlFor="status" className="my-2">
+              Holati
+            </label>
+            <select
+              id="status"
+              className="form-control"
+              value={editadobe.status}
+              onChange={(e) =>
+                setEditadobe({ ...editadobe, status: e.target.value })
+              }
+            >
+              <option value="0">Tasdiqlanmagan</option>
+              <option value="1">Tasdiqlangan</option>
+            </select>
+          </div>
+        )}
         <div className="form-group my-3">
           <label htmlFor="image" className="my-2">
             Rasm

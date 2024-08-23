@@ -4,6 +4,7 @@ import {
   getOrganization,
   putOrganization,
 } from "../../../../http/organizationApi";
+import { useAuth } from "../../../../context/AuthContext";
 
 const OrganizationEdit = ({ match, history }) => {
   const [formData, setFormData] = useState({
@@ -31,7 +32,7 @@ const OrganizationEdit = ({ match, history }) => {
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const { userDetails } = useAuth();
   useEffect(() => {
     const fetchOrganization = async () => {
       try {
@@ -298,6 +299,22 @@ const OrganizationEdit = ({ match, history }) => {
                 ))}
               </select>
             </div>
+            {userDetails.role === "admin" && (
+              <div className="form-group my-3">
+                <label htmlFor="status" className="my-2">
+                  Holati
+                </label>
+                <select
+                  id="status"
+                  className="form-control"
+                  onChange={handleChange}
+                  value={formData.status}
+                >
+                  <option value="0">Tasdiqlanmagan</option>
+                  <option value="1">Tasdiqlangan</option>
+                </select>
+              </div>
+            )}
             <button className="btn btn-success px-3" type="submit">
               Saqlash
             </button>
