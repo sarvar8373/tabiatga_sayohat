@@ -1,0 +1,62 @@
+[
+  {
+    "image": "img/adventure/370-275.jpg",
+    "icons": [
+      "img/icon/t1.png",
+      "img/icon/t2.png",
+      "img/icon/t3.png",
+      "img/icon/t4.png"
+    ],
+    "tour": "7 kun - 14 kishi Maks - Ko'p faollik",
+    "title": "Janubiy orolning eng yaxshi sarguzashtlari",
+    "reviewStars": 5,
+    "description": "bu yer, ajoyib ochiq havo oilalari uchun birgalikda sifatli vaqt o'tkazish uchun ajoyib joy ekanligiga ishonamiz. Biz bugungi oilalarning doimiy o'zgaruvchan talablarini qondirish uchun turli joylarda eng yaxshi muhit, qulayliklar va tadbirlarni ta'minlashni o'z oldimizga maqsad qilib qo'yamiz.",
+    "price": "1 500 000 UZS",
+    "priceDescription": "Bir kishi uchun"
+  },
+  {
+    "image": "img/adventure/370-275.jpg",
+    "icons": [
+      "img/icon/t1.png",
+      "img/icon/t2.png",
+      "img/icon/t3.png",
+      "img/icon/t4.png"
+    ],
+    "tour": "masofaviy sayohatlar - yovvoyi sarguzashtlar",
+    "title": "O'rmoni velosipedda aylanib chiqish",
+    "reviewStars": 5,
+    "description": "ochiq havoda oilalari uchun ajoyib joy birga sifatli vaqt o'tkazing. Biz ta'minlash qilib o'z eski maqsadimizga qo'yamiz eng yaxshi muhit, qulayliklar va xizmatlar doimiy o' talablarga javob beradigan turli xil joylar bugungi oilalar uchun.",
+    "price": "1 800 000 UZS",
+    "priceDescription": "Bir kishi uchun"
+  },
+  {
+    "image": "img/adventure/370-275.jpg",
+    "icons": [
+      "img/icon/t1.png",
+      "img/icon/t2.png",
+      "img/icon/t3.png",
+      "img/icon/t4.png"
+    ],
+    "tour": "7 kun - 14 kishi Maks - Ko'p faollik",
+    "title": "Janubiy orolning eng yaxshi sarguzashtlari",
+    "reviewStars": 5,
+    "description": "bu yer, ajoyib ochiq havo oilalari uchun birgalikda sifatli vaqt o'tkazish uchun ajoyib joy ekanligiga ishonamiz. Biz bugungi oilalarning doimiy o'zgaruvchan talablarini qondirish uchun turli joylarda eng yaxshi muhit, qulayliklar va tadbirlarni ta'minlashni o'z oldimizga maqsad qilib qo'yamiz.",
+    "price": "1 700 000 UZS",
+    "priceDescription": "Bir kishi uchun"
+  },
+  {
+    "image": "img/adventure/370-275.jpg",
+    "icons": [
+      "img/icon/t1.png",
+      "img/icon/t2.png",
+      "img/icon/t3.png",
+      "img/icon/t4.png"
+    ],
+    "tour": "masofaviy sayohatlar - yovvoyi sarguzashtlar",
+    "title": "O'rmoni velosipedda aylanib chiqish",
+    "reviewStars": 5,
+    "description": "ochiq havoda oilalari uchun ajoyib joy birga sifatli vaqt o'tkazing. Biz ta'minlash qilib o'z eski maqsadimizga qo'yamiz eng yaxshi muhit, qulayliklar va xizmatlar doimiy o' talablarga javob beradigan turli xil joylar bugungi oilalar uchun.",
+    "price": "1 200 000 UZS",
+    "priceDescription": "Bir kishi uchun"
+  }
+]
