@@ -7,14 +7,13 @@ import axios from "axios";
 import Sidebar from "../../components/sidebar/sidebar";
 import { Link } from "react-router-dom";
 import { HelmetProvider, Helmet } from "react-helmet-async";
+
 export default function Adventure() {
   const [adventures, setAdventures] = useState([]);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [adventurePerPage] = useState(4); // Number of posts per page
-  // const indexOfLastPost = currentPage * adventurePerPage;
-  // const indexOfFirstPost = indexOfLastPost - adventurePerPage;
-  // const currentPosts = adventures.slice(indexOfFirstPost, indexOfLastPost);
+  const [selectedAdventure, setSelectedAdventure] = useState(null);
   const totalPages = Math.ceil(adventures.length / adventurePerPage);
 
   useEffect(() => {
@@ -31,14 +30,15 @@ export default function Adventure() {
       }
     };
     fetchPost();
-  });
-  // Handle page change
+  }, []);
+
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const truncateDescription = (text, wordLimit) => {
     const words = text.split(" ");
     if (words.length <= wordLimit) return text;
     return `${words.slice(0, wordLimit).join(" ")}...`;
   };
+
   return (
     <div>
       <HelmetProvider>
@@ -118,8 +118,8 @@ export default function Adventure() {
                   </div>
                 </div>
               </div>
-              {adventures.map((adventure, index) => (
-                <div className="single-adventure style-2" key={index}>
+              {adventures.map((adventure) => (
+                <div className="single-adventure style-2" key={adventure.id}>
                   <div
                     className="advanture-thumb"
                     style={{ width: "370px", height: "275px" }}
@@ -167,11 +167,11 @@ export default function Adventure() {
                       type="button"
                       className="btn btn-theme px-3 py-2 mx-3"
                       data-bs-toggle="modal"
-                      data-bs-target="#exampleModal"
+                      data-bs-target="#adventure"
+                      onClick={() => setSelectedAdventure(adventure)}
                     >
                       Buyurtma berish
                     </button>
-                    <Modal />
                   </div>
                 </div>
               ))}
@@ -203,8 +203,9 @@ export default function Adventure() {
             <div className="col-lg-10"></div>
           </div>
         </div>
-      </div>{" "}
+      </div>
       <Footer />
+      {selectedAdventure && <Modal adventure={selectedAdventure} />}
     </div>
   );
 }
