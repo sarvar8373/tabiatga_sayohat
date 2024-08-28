@@ -76,7 +76,7 @@ Version: 1.0.0
   color: #ffffff;
 }
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 5px;
 }
 
 /* Track */
@@ -120,7 +120,7 @@ header.header-area.style-2 .header-top-contact {
   position: relative;
 }
 .header-top-left > ul > li a {
-  color: #ffffff;
+  color: #ffffff !important;
   font-size: 14px;
   position: relative;
   margin-right: 20px;
@@ -182,7 +182,7 @@ header.header-area.style-2 .header-top-contact {
 }
 .header-top-contact ul li a {
   font-size: 14px;
-  color: #ffffff;
+  color: #ffffff !important;
   margin-right: 25px;
 }
 .header-top-contact ul li a i {
@@ -279,7 +279,7 @@ nav.gene-nav {
   list-style: none;
 }
 .gene-nav .menu li a {
-  color: #adaeaf;
+  color: #adaeaf !important;
   display: block;
   font-size: 16px;
 }
@@ -291,10 +291,10 @@ nav.gene-nav ul.menu > li:first-child > a:nth-child(1) {
   padding: 0;
 }
 .gene-nav .menu > li:hover > a {
-  color: #ff5300;
+  color: #ff5300 !important;
 }
 .gene-nav ul.menu > li > a {
-  color: #ffffff;
+  color: #ffffff !important;
   font-size: 14px;
   opacity: 1;
   padding: 5px 19px 39px 15px;
@@ -311,11 +311,14 @@ nav.gene-nav ul.menu > li:first-child > a:nth-child(1) {
 .navigation-area.dark .gene-nav .menu > li:hover > a,
 .absolute-header .navigation-area .gene-nav ul.menu > li:hover > a {
   background: transparent;
-  color: #ff5300;
+  color: #ff5300 !important;
 }
 .gene-nav .menu > li:last-child > ul ul {
   left: auto;
   right: 100%;
+}
+.gene-nav .menu li a:hover {
+  color: #ff5300 !important;
 }
 .gene-nav .menu > li ul {
   background-color: #ffffff;
@@ -514,7 +517,7 @@ header.header-area.style-2 .mobile-menu-area .mean-nav {
 }
 .login-cart ul li a {
   font-size: 16px;
-  color: #ffffff;
+  color: #ffffff !important;
 }
 .login-cart ul li a i {
   margin-right: 6px;
@@ -593,11 +596,11 @@ header.header-area.style-2.sticky .gene-nav ul.menu {
 }
 .single-slide-content h1 {
   color: #ffffff;
-  font-size: 90px;
+  font-size: 90px !important;
   margin-bottom: 15px;
   font-weight: 400;
   text-transform: capitalize;
-  line-height: 110px;
+  line-height: 110px !important;
 }
 .content-text h1 span {
   display: block;
@@ -972,7 +975,10 @@ header.header-area.style-2.sticky .gene-nav ul.menu {
   padding: 0 20px;
   margin-bottom: 25px;
 }
-.adventure-content h5 {
+
+.adventure-content h5,
+.adventure-content h6 {
+  color: #303030;
   margin-bottom: 0;
   transition: all 0.5s ease;
   text-transform: capitalize;
@@ -1341,6 +1347,9 @@ header.header-area.style-2.sticky .gene-nav ul.menu {
   text-transform: uppercase;
   font-weight: 400;
 }
+table thead {
+  background-color: #000000 !important; /* Override the default table background color */
+}
 .single-post-blog .post-blog-content {
   padding: 0 20px 12px;
 }
@@ -1348,7 +1357,8 @@ header.header-area.style-2.sticky .gene-nav ul.menu {
   padding: 0 30px 12px;
 }
 .single-post-blog .post-blog-content h4 {
-  font-size: 20px;
+  color: #333230;
+  font-size: 20px !important;
   line-height: 28px;
   margin-bottom: 5px;
 }
@@ -1597,7 +1607,7 @@ footer.footer-area .widget p {
   display: inline-block;
 }
 .widget.contact-widget ul li a {
-  color: #ffffff;
+  color: #ffffff !important;
   font-size: 20px;
   margin-right: 2px;
   border: 1px solid #ececec;
@@ -1626,7 +1636,7 @@ footer.footer-area .widget p {
 .widget.quick-link-widget ul li a,
 .widget.quick-link-categories ul li a,
 .widget.quick-destinations ul li a {
-  color: #ffffff;
+  color: #ffffff !important;
   font-size: 14px;
   line-height: 30px;
 }
@@ -1647,7 +1657,7 @@ footer.footer-area .widget p {
   list-style: none;
 }
 .widget.contact-us ul li a {
-  color: #ffffff;
+  color: #ffffff !important;
   font-size: 14px;
   line-height: 30px;
   display: inline-flex;
@@ -1752,11 +1762,12 @@ footer.footer-area .widget p {
 }
 .bradcumb ul li {
   display: inline-block;
-  color: #ffffff;
+  color: rgb(255, 83, 0);
 }
 .bradcumb ul li a {
   position: relative;
   margin-right: 20px;
+  color: #fff !important;
 }
 .bradcumb ul li a:before {
   position: absolute;
@@ -1983,7 +1994,7 @@ footer.footer-area .widget p {
 }
 .view-grid ul li a:hover,
 .view-grid ul li.active a {
-  color: #ff5300;
+  color: #ff5300 !important;
 }
 .gane-pagination ul {
   margin: 0;
@@ -2593,7 +2604,7 @@ a.btn.btn-theme,
 button.btn.btn-theme,
 input.btn.btn-theme {
   background: #ff5300;
-  color: #ffffff;
+  color: #ffffff !important;
   border-radius: 10px;
   padding: 19px 50px;
 }
@@ -2831,7 +2842,7 @@ a.btn.btn-theme.float-right {
   height: 50px;
   font-size: 12px;
   text-transform: uppercase;
-  color: #ffffff;
+  color: #ffffff !important;
   display: block;
   margin-right: -5px;
   line-height: 50px;

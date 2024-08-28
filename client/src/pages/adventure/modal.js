@@ -2,18 +2,20 @@ import React, { useState } from "react";
 import axios from "axios";
 import { BASE_URL } from "../../api/host/host";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css"; // Ensure you have Bootstrap CSS imported
+import { postLogin } from "../../http/usersApi";
 
-export default function Modal({ adventure }) {
+export default function AdventureModal({ adventure, showModal, handleClose }) {
   const [phone_number, setPhone_number] = useState("");
   const [full_name, setFull_name] = useState("");
   const [password, setPassword] = useState("");
-  const [isExistingUser, setIsExistingUser] = useState("");
+  const [isExistingUser, setIsExistingUser] = useState(false); // Correctly initialize as boolean
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
-  const { userDetails } = useAuth();
+
   const handlePhoneNumberCheck = async () => {
     setLoading(true);
     setError("");
@@ -34,33 +36,70 @@ export default function Modal({ adventure }) {
     setLoading(true);
     setError("");
     try {
-      // Check if user exists and handle accordingly
+      let userId;
+      let token;
+
       if (!isExistingUser) {
+        // Create new user
         await axios.post(`${BASE_URL}/auth/add_user`, {
           phone_number,
           full_name,
           password,
         });
+        // Login the user after registration
+        const loginResponse = await postLogin({ phone_number, password });
+        token = loginResponse.data.token;
+
+        // Store the token in localStorage
+        localStorage.setItem("token", token);
       } else {
-        await axios.post(`${BASE_URL}/auth/login`, {
-          phone_number,
-          password,
-        });
+        // Login existing user
+        const loginResponse = await postLogin({ phone_number, password });
+        token = loginResponse.data.token;
+
+        // Store the token in localStorage
+        localStorage.setItem("token", token);
       }
 
-      // Create the order
-      await axios.post(`${BASE_URL}/orders/add_order`, {
-        user_id: userDetails.id, // You need to set user_id in local storage
+      // Retrieve token from localStorage
+      const storedToken = localStorage.getItem("token");
+      console.log("Stored Token:", storedToken); // Debug token here
+
+      // Fetch user details with the retrieved token
+      const userResponse = await axios.get(`${BASE_URL}/auth/user`, {
+        headers: { Authorization: `Bearer ${storedToken}` }, // Ensure the token is included in the header
+        withCredentials: true,
+      });
+
+      console.log("User response:", userResponse.data); // Debug user response
+
+      userId = userResponse.data.id;
+
+      if (!userId) {
+        throw new Error("User ID is not available");
+      }
+
+      // Place order
+      const orderResponse = await axios.post(`${BASE_URL}/orders/add_order`, {
+        user_id: userId,
         tour_id: adventure.id,
-        quantity: 1, // Adjust quantity as needed
+        quantity: 1,
         total_price: adventure.price,
         status: "pending",
       });
 
-      // Redirect or show success message
-      navigate("/dashboard");
+      if (orderResponse.status === 200) {
+        navigate("/dashboard");
+        handleClose(); // Close the modal on successful order
+      } else {
+        setError("Failed to place the order. Status: " + orderResponse.status);
+      }
     } catch (err) {
-      setError("Failed to place the order.");
+      console.error("Error details:", err);
+      setError(
+        "Failed to place the order. " +
+          (err.response?.data?.Error || "Unknown error")
+      );
     } finally {
       setLoading(false);
     }
@@ -76,102 +115,80 @@ export default function Modal({ adventure }) {
   };
 
   return (
-    <div
-      className="modal fade"
-      id="adventure"
-      tabIndex="-1"
-      aria-labelledby="adventureLabel"
-      aria-hidden="true"
-    >
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h1 className="modal-title fs-5" id="adventureLabel">
-              {step === 1
-                ? "Telefon raqamingizni kiriting"
-                : isExistingUser
-                ? "Login"
-                : "Akkaunt ochish"}
-            </h1>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              {step === 1 && (
-                <div className="single-field">
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    pattern="[+]{1}[9]{1}[9]{1}[8]{1}[0-9]{9}"
-                    placeholder="+998"
-                    className="form-control"
-                    onChange={(e) => setPhone_number(e.target.value)}
-                    onBlur={handlePhoneNumberCheck}
+    <Modal show={showModal} onHide={handleClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>
+          {step === 1
+            ? "Enter Your Phone Number"
+            : isExistingUser
+            ? "Login"
+            : "Create Account"}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form onSubmit={handleSubmit}>
+          {step === 1 && (
+            <Form.Group controlId="phoneNumber">
+              <Form.Control
+                type="tel"
+                placeholder="+998"
+                pattern="[+]{1}[9]{1}[9]{1}[8]{1}[0-9]{9}"
+                onChange={(e) => setPhone_number(e.target.value)}
+                onBlur={handlePhoneNumberCheck}
+                required
+              />
+            </Form.Group>
+          )}
+          {step === 2 && (
+            <>
+              {!isExistingUser && (
+                <Form.Group controlId="fullName">
+                  <Form.Control
+                    type="text"
+                    placeholder="Full Name"
+                    onChange={(e) => setFull_name(e.target.value)}
                     required
                   />
-                </div>
+                </Form.Group>
               )}
-              {step === 2 && (
+              <Form.Group controlId="password">
+                <Form.Control
+                  type="password"
+                  placeholder="Password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </Form.Group>
+            </>
+          )}
+          {error && <p className="text-danger">{error}</p>}
+          <Modal.Footer>
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? (
                 <>
-                  {!isExistingUser && (
-                    <div className="single-field">
-                      <input
-                        type="text"
-                        id="fullName"
-                        name="fullName"
-                        placeholder="Full Name"
-                        onChange={(e) => setFull_name(e.target.value)}
-                        required
-                      />
-                    </div>
-                  )}
-                  <div className="single-field">
-                    <input
-                      type="password"
-                      id="password"
-                      name="password"
-                      placeholder="Password"
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />{" "}
+                  Loading...
                 </>
+              ) : step === 1 ? (
+                "Next"
+              ) : (
+                "Place Order"
               )}
-              {error && <p className="text-danger">{error}</p>}
-              <div className="modal-footer">
-                <button
-                  type="submit"
-                  className="btn btn-theme"
-                  disabled={loading}
-                  data-bs-dismiss="modal"
-                >
-                  {loading
-                    ? "Yuklanmoqda..."
-                    : step === 1
-                    ? "Keyingisi"
-                    : "Buyurtma berish"}
-                </button>
-                {step === 2 && (
-                  <button
-                    type="button"
-                    className="btn btn-theme"
-                    style={{ background: "gray" }}
-                    data-bs-dismiss="modal"
-                  >
-                    Yopish
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Button>
+            {step === 2 && (
+              <Button variant="secondary" onClick={handleClose}>
+                Close
+              </Button>
+            )}
+          </Modal.Footer>
+        </Form>
+      </Modal.Body>
+    </Modal>
   );
 }

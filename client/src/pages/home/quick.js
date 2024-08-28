@@ -41,7 +41,7 @@ export default function Quick() {
             <div className="single-quick-icon text-center">
               <div className="quick-icon-content">
                 <img src="img/icon/5.png" alt="" />
-                <p>Safarilar</p>
+                <p>Safarlar</p>
               </div>
             </div>
           </div>

@@ -90,7 +90,7 @@ export default function OrganizationList() {
     <div className="container-fluid px-4">
       <h2 className="mt-4">Tashkilotlar ro'yhati</h2>
       <table className="table table-striped">
-        <thead className="bg-dark">
+        <thead className="table-dark">
           <tr>
             <th className="text-light">ID</th>
             <th className="text-light">INN/PINFL</th>

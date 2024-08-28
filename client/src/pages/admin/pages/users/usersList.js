@@ -217,7 +217,7 @@ export default function UsersList() {
     <div className="container-fluid px-4">
       <h2 className="mt-4">Foydalanuvchilar</h2>
       <table className="table table-striped">
-        <thead className="bg-dark">
+        <thead className="table-dark">
           <tr>
             <th className="text-light">ID</th>
             <th className="text-light">

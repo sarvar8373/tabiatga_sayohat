@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../components/header/header";
 import Footer from "../../components/footer/footer";
-import Modal from "./modal";
+import AdventureModal from "./modal"; // Updated import
 import { BASE_URL } from "../../api/host/host";
 import axios from "axios";
 import Sidebar from "../../components/sidebar/sidebar";
 import { Link } from "react-router-dom";
 import { HelmetProvider, Helmet } from "react-helmet-async";
+import { Button } from "react-bootstrap";
 
 export default function Adventure() {
   const [adventures, setAdventures] = useState([]);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [adventurePerPage] = useState(4); // Number of posts per page
+  const [adventurePerPage] = useState(4);
   const [selectedAdventure, setSelectedAdventure] = useState(null);
+  const [showModal, setShowModal] = useState(false); // State for modal visibility
   const totalPages = Math.ceil(adventures.length / adventurePerPage);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function Adventure() {
       try {
         const response = await axios.get(`${BASE_URL}/tours/`);
         if (response.data.Status) {
-          setAdventures(response.data.Result); // Fetch surrounding posts using the current ID
+          setAdventures(response.data.Result);
         } else {
           setError("Tours not found");
         }
@@ -163,15 +165,16 @@ export default function Adventure() {
                       {adventure.price}{" "}
                       <small>{adventure.priceDescription}</small>
                     </p>
-                    <button
+                    <Button
                       type="button"
-                      className="btn btn-theme px-3 py-2 mx-3"
-                      data-bs-toggle="modal"
-                      data-bs-target="#adventure"
-                      onClick={() => setSelectedAdventure(adventure)}
+                      className="btn btn-theme px-3 py-2 mx-3 border-0"
+                      onClick={() => {
+                        setSelectedAdventure(adventure);
+                        setShowModal(true);
+                      }}
                     >
                       Buyurtma berish
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -205,7 +208,13 @@ export default function Adventure() {
         </div>
       </div>
       <Footer />
-      {selectedAdventure && <Modal adventure={selectedAdventure} />}
+      {selectedAdventure && (
+        <AdventureModal
+          adventure={selectedAdventure}
+          showModal={showModal}
+          handleClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

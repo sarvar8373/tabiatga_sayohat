@@ -1,5 +1,8 @@
 /*==== 1. GLOBAL STYLES ====*/
 /* === 1.1 Body === */
+:root {
+  --bs-table-bg: #333 !important; /* Override Bootstrap table background variable */
+}
 html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
@@ -8,10 +11,10 @@ html {
 body {
   background-color: #ffffff;
   color: #282828;
-  font-family: "Roboto", sans-serif;
+  font-family: "Roboto", sans-serif !important;
   font-size: 18px;
   font-weight: normal;
-  line-height: 35px;
+  line-height: 35px !important;
   margin: 0;
   padding: 0;
   position: relative;
@@ -25,7 +28,7 @@ a {
   -webkit-transition: all 0.3s ease-in-out;
   -o-transition: all 0.3s ease-in-out;
   transition: all 0.3s ease-in-out;
-  text-decoration: none;
+  text-decoration: none !important;
 }
 a,
 a > * {
@@ -41,6 +44,7 @@ a:active {
   outline: none;
   color: inherit;
 }
+
 :focus {
   outline: none;
 }
@@ -86,27 +90,27 @@ h6 {
   font-family: "Abril Fatface", cursive;
 }
 h1 {
-  font-size: 36px;
+  font-size: 36px !important;
   line-height: 42px;
 }
 h2 {
-  font-size: 30px;
+  font-size: 30px !important;
   line-height: 35px;
 }
 h3 {
-  font-size: 28px;
+  font-size: 28px !important;
   line-height: 32px;
 }
 h4 {
-  font-size: 24px;
+  font-size: 24px !important;
   line-height: 38px;
 }
 h5 {
-  font-size: 20px;
+  font-size: 20px !important;
   line-height: 30px;
 }
 h6 {
-  font-size: 18px;
+  font-size: 18px !important;
 }
 /* === PARAGRAPH === */
 p {
@@ -542,5 +546,15 @@ img {
   100% {
     bottom: -18px;
     width: 100px;
+  }
+}
+@media (min-width: 1400px) {
+  .container,
+  .container-lg,
+  .container-md,
+  .container-sm,
+  .container-xl,
+  .container-xxl {
+    max-width: 1194px !important;
   }
 }

@@ -119,7 +119,7 @@ export default function Category() {
       />
 
       <table className="table table-striped">
-        <thead className="bg-dark">
+        <thead className="table-dark">
           <tr>
             <th className="text-light">ID</th>
             <th className="text-light">Nomi</th>

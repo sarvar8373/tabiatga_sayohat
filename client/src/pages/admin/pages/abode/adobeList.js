@@ -5,6 +5,7 @@ import debounce from "lodash/debounce";
 import SearchItem from "../../../../components/search-item/searchItem";
 import { getDistricts, getRegions } from "../../../../http/usersApi";
 import { deleteTours, getTours } from "../../../../http/adobeApi";
+import { useAuth } from "../../../../context/AuthContext";
 
 export default function AdobeList() {
   const [tours, setTours] = useState([]);
@@ -19,7 +20,7 @@ export default function AdobeList() {
   const [selectedAdobe, setSelectedAdobe] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [districts, setDistricts] = useState([]);
-
+  const { userDetails } = useAuth();
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
@@ -115,7 +116,35 @@ export default function AdobeList() {
         : true;
 
       const matchesPrice = post.price.toLowerCase().includes(priceSearchTerm);
+      if (userDetails && userDetails.role === "region") {
+        return (
+          matchesTitle &&
+          matchesregion &&
+          matchesPrice &&
+          post.region_id === userDetails.region_id
+        );
+        // Exclude users with other roles
+      }
+      if (userDetails && userDetails.role === "district") {
+        return (
+          matchesTitle &&
+          matchesregion &&
+          matchesPrice &&
+          post.district_id === userDetails.district_id
+        );
+        // Exclude users with other roles
+      }
+      if (userDetails && userDetails.role === "user") {
+        return (
+          matchesTitle &&
+          matchesregion &&
+          matchesPrice &&
+          post.user_id === userDetails.user_id
+        );
+        // Exclude users with other roles
+      }
 
+      // For other roles, return all matched users
       return matchesTitle && matchesregion && matchesPrice;
     });
     setFilteredPosts(filtered);
@@ -144,8 +173,8 @@ export default function AdobeList() {
       ) : (
         <>
           <h2 className="mt-4">Maskanlar</h2>
-          <table className="table table-striped">
-            <thead className="bg-dark">
+          <table className="table table-striped" variant="dark">
+            <thead className="table-dark">
               <tr>
                 <th className="text-light">ID</th>
                 <th className="text-light">

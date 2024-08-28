@@ -16,7 +16,8 @@ const Adobe = () => {
     price: "",
     price_description: "",
     country: "",
-    status: "0", // Use string to match select values
+    status: "0",
+    user_id: "", // Use string to match select values
   });
   const [image, setImage] = useState(null);
   const { userDetails } = useAuth();
@@ -81,7 +82,7 @@ const Adobe = () => {
     data.append("region_id", selectedRegion);
     data.append("district_id", selectedDistrict);
     data.append("status", formData.status); // Ensure status is added
-
+    data.append("user_id", userDetails.id);
     postTour(data)
       .then((response) => {
         if (response.data.Status) {
@@ -93,7 +94,8 @@ const Adobe = () => {
             price_description: "",
             tour_type: "",
             country: "",
-            status: "0", // Reset to default value
+            status: "0",
+            user_id: userDetails.id, // Reset to default value
           });
           setSelectedRegion("");
           setSelectedDistrict("");
