@@ -25,16 +25,16 @@ router.post("/add_tour", upload.single("image"), (req, res) => {
     description,
     price,
     price_description,
-    tour_type,
     user_id, // Ensure this is provided in the request
     region_id,
     district_id,
     status,
+    tourism_service_id,
   } = req.body;
   const image = req.file ? req.file.filename : "";
 
   // Updated SQL query without the extra comma
-  const sql = `INSERT INTO tours (title, description, image, price, price_description, tour_type, user_id, region_id, district_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO tours (title, description, image, price, price_description, user_id, region_id, district_id, status, tourism_service_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   const values = [
     title,
@@ -42,11 +42,11 @@ router.post("/add_tour", upload.single("image"), (req, res) => {
     image,
     price,
     price_description,
-    tour_type,
     user_id, // Ensure user_id is included if required
     region_id,
     district_id,
     status,
+    tourism_service_id,
   ];
 
   DB.query(sql, values, (err, result) => {
@@ -84,25 +84,25 @@ router.put("/tour/:id", upload.single("image"), (req, res) => {
   const newTitle = req.body.title;
   const newDescription = req.body.description;
   const newImage = req.file ? req.file.filename : null; // Use `null` if no file is uploaded
-  const newTourType = req.body.tour_type;
   const newPrice = req.body.price;
   const newPriceDescription = req.body.price_description;
   const newRegionId = req.body.region_id;
   const newDistrictId = req.body.district_id;
   const newStatus = req.body.status;
+  const newTourType = req.body.tourism_service_id;
 
   // Start building the SQL query
   let sql =
-    "UPDATE tours SET title=?, description=?, tour_type=?, price=?, price_description=?, region_id=?, district_id=?, status=?";
+    "UPDATE tours SET title=?, description=?, tourism_service_id=?, price=?, price_description=?, region_id=?, district_id=?, status=?";
   let params = [
     newTitle,
     newDescription,
-    newTourType,
     newPrice,
     newPriceDescription,
     newRegionId,
     newDistrictId,
     newStatus,
+    newTourType,
   ];
 
   // Add the image field to the SQL query and parameters if an image is provided

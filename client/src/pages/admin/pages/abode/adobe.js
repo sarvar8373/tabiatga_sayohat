@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { getRegions, getSelectRegion } from "../../../../http/usersApi";
 import { postTour } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
+import { getTourService } from "../../../../http/tourServices";
 
 const Adobe = () => {
+  const [tourServices, setTourServices] = useState([]);
   const [regions, setRegions] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState("");
@@ -17,7 +19,7 @@ const Adobe = () => {
     price_description: "",
     country: "",
     status: "0",
-    user_id: "", // Use string to match select values
+    tourism_service_id: "", // Use string to match select values
   });
   const [image, setImage] = useState(null);
   const { userDetails } = useAuth();
@@ -34,6 +36,22 @@ const Adobe = () => {
       })
       .catch((err) => {
         setError("Error fetching regions.");
+        console.error(err);
+      });
+  }, []);
+
+  useEffect(() => {
+    // Fetch tour services
+    getTourService()
+      .then((response) => {
+        if (response.data.Status) {
+          setTourServices(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Error fetching tour services.");
         console.error(err);
       });
   }, []);
@@ -83,16 +101,18 @@ const Adobe = () => {
     data.append("district_id", selectedDistrict);
     data.append("status", formData.status);
     data.append("user_id", userDetails.id);
+    data.append("tourism_service_id", formData.tourism_service_id);
+
     postTour(data)
       .then((response) => {
         if (response.data.Status) {
-          alert("Maskanlar qo'shish");
+          alert("Maskanlar qo'shildi");
           setFormData({
             title: "",
             description: "",
             price: "",
             price_description: "",
-            tour_type: "",
+            tourism_service_id: "",
             country: "",
             status: "0",
             user_id: userDetails.id, // Reset to default value
@@ -113,6 +133,7 @@ const Adobe = () => {
   return (
     <div className="container-fluid px-4">
       <h2 className="mt-4">Maskan qo'shish</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
       <div className="login-form">
         <form className="gane-form" onSubmit={handleSubmit}>
           <div className="single-field">
@@ -133,13 +154,21 @@ const Adobe = () => {
             />
           </div>
           <div className="single-field">
-            <label htmlFor="tour_type">Maskan turi</label>
-            <input
-              type="text"
-              name="tour_type"
-              value={formData.tour_type}
+            <label htmlFor="tourism_service_id">Maskan turi</label>
+            <select
+              id="tourism_service_id"
+              name="tourism_service_id"
+              value={formData.tourism_service_id}
               onChange={handleChange}
-            />
+              className="form-control"
+            >
+              <option value="">Faoliyat turi</option>
+              {tourServices.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="single-field">
             <label htmlFor="price">Narxi</label>

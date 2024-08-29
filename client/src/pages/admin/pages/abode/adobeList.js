@@ -6,10 +6,12 @@ import SearchItem from "../../../../components/search-item/searchItem";
 import { getDistricts, getRegions } from "../../../../http/usersApi";
 import { deleteTours, getTours } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
+import { getTourService } from "../../../../http/tourServices";
 
 export default function AdobeList() {
   const [tours, setTours] = useState([]);
   const [error, setError] = useState("");
+  const [tourServices, setTourServices] = useState([]);
   const [regions, setRegions] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState(""); // For title search
@@ -32,12 +34,25 @@ export default function AdobeList() {
   const debouncedSearch = debounce(() => {
     handleSearch();
   }, 300);
-
   useEffect(() => {
     getRegions()
       .then((response) => {
         if (response.data.Status) {
           setRegions(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Error fetching regions.");
+        console.error(err);
+      });
+  }, []);
+  useEffect(() => {
+    getTourService()
+      .then((response) => {
+        if (response.data.Status) {
+          setTourServices(response.data.Result);
         } else {
           setError(response.data.Error);
         }
@@ -165,6 +180,7 @@ export default function AdobeList() {
       {editMode ? (
         <AdobeEdit
           adobe={selectedAdobe}
+          tourServices={tourServices}
           regions={regions}
           districts={districts}
           onSave={handleSave}

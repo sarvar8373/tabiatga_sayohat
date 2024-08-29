@@ -13,7 +13,8 @@ export default function Selling() {
       try {
         const response = await axios.get(`${BASE_URL}/tours`);
         if (response.data.Status) {
-          setAdventures(response.data.Result);
+          // Slice the last 5 adventures
+          setAdventures(response.data.Result.slice(-6));
         } else {
           setError("Tours not found");
         }
@@ -31,14 +32,14 @@ export default function Selling() {
           <div className="col-lg-6">
             <div className="selling-tips-wrap">
               <div className="single-selling-tips section-title">
-                <p className="title">ENG YAXSHI SOTILGAN sayohatlar </p>
+                <p className="title">ENG YAXSHI SOTILGAN sayohatlar</p>
                 <h2>
                   Eng yuqori baholangan tajribalar <span></span> Sarguzashtlar
                   haqida
                 </h2>
                 <p>
                   Sumkalaringizni yig'ish va keyingi sarguzashtingizga
-                  tayyorgarlik ko'rish vaqti keldi. yilnig barcha oylarida
+                  tayyorgarlik ko'rish vaqti keldi. yilning barcha oylarida
                   o'tkaziladigan sayohatlarimizni ko'rib chiqing va agar sizda
                   biron bir narsani ko'rsangiz, bron qiling! Biz ham siz kabi
                   katta va go'zal dunyomizni kashf qilishdan xursandmiz.

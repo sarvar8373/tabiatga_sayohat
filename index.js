@@ -14,6 +14,7 @@ import { DistrictRouter } from "./routes/DistrictRoutes.js";
 import { OrdersRouter } from "./routes/OrderRoutes.js";
 import { authRouter } from "./routes/authRoutes.js";
 import { categoryRouter } from "./routes/categoriesRoutes.js";
+import { TourServiceRouter } from "./routes/tourServicesRoutes.js";
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.use("/district", DistrictRouter);
 app.use("/orders", OrdersRouter);
 app.use("/statistics", Statistics);
 app.use("/pages", PagesRouter);
+app.use("/services", TourServiceRouter);
 
 app.listen(process.env.PORT || 9000, () => {
   console.log("Server runing");

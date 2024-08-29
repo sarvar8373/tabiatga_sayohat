@@ -5,22 +5,23 @@ import { useAuth } from "../../../../context/AuthContext";
 export default function AdobeEdit({
   adobe,
   regions,
+  tourServices,
   districts,
   onSave,
   onCancel,
 }) {
   const [editadobe, setEditadobe] = useState(adobe);
   const { userDetails } = useAuth();
+
   useEffect(() => {
     if (adobe) {
       setEditadobe(adobe);
     }
   }, [adobe]);
 
-  // Example handleUpdate with null checks
   const handleUpdate = () => {
     if (!editadobe || !editadobe.id) {
-      alert("Adobe data is missing or incorrect.");
+      alert("Maskanlarda ma'lumotlar noto'g'ri kiritilgan.");
       return;
     }
 
@@ -28,24 +29,24 @@ export default function AdobeEdit({
     if (
       !editadobe.title ||
       !editadobe.description ||
-      !editadobe.tour_type ||
       !editadobe.price ||
       !editadobe.price_description ||
       !editadobe.region_id ||
       !editadobe.district_id ||
-      !editadobe.status
+      !editadobe.status ||
+      !editadobe.tourism_service_id
     ) {
       alert("Please fill in all required fields.");
-      console.log("EditAdobe state:", editadobe.id); // Debug: Log the editadobe state
+      console.log("EditAdobe state:", editadobe); // Debug: Log the editadobe state
       return;
     }
 
     const formData = new FormData();
     formData.append("title", editadobe.title);
-    formData.append("description", editadobe.description); // Ensure this matches the backend
-    formData.append("tour_type", editadobe.tour_type);
+    formData.append("description", editadobe.description);
+    formData.append("tourism_service_id", editadobe.tourism_service_id);
     formData.append("price", editadobe.price);
-    formData.append("price_description", editadobe.price_description); // Ensure this matches the backend
+    formData.append("price_description", editadobe.price_description);
     formData.append("region_id", editadobe.region_id);
     formData.append("district_id", editadobe.district_id);
     formData.append("status", editadobe.status);
@@ -89,11 +90,10 @@ export default function AdobeEdit({
           />
         </div>
         <div className="form-group my-3">
-          <label htmlFor="text" className="my-2">
+          <label htmlFor="description" className="my-2">
             Ma'lumot
           </label>
           <textarea
-            type="text"
             className="form-control"
             id="description"
             value={editadobe.description}
@@ -103,19 +103,24 @@ export default function AdobeEdit({
           />
         </div>
         <div className="form-group">
-          <label htmlFor="tour_type">Maskan turi</label>
-          <input
-            type="text"
+          <label htmlFor="tourism_service_id">Maskan turi</label>
+          <select
+            id="tourism_service_id"
             className="form-control"
-            id="tour_type"
-            value={editadobe.tour_type}
+            value={editadobe.tourism_service_id}
             onChange={(e) =>
-              setEditadobe({ ...editadobe, tour_type: e.target.value })
+              setEditadobe({ ...editadobe, tourism_service_id: e.target.value })
             }
-          />
+          >
+            {tourServices.map((service) => (
+              <option key={service.id} value={service.id}>
+                {service.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="form-group">
-          <label htmlFor="tour_type">Narxi</label>
+          <label htmlFor="price">Narxi</label>
           <input
             type="text"
             className="form-control"
@@ -127,11 +132,11 @@ export default function AdobeEdit({
           />
         </div>
         <div className="form-group">
-          <label htmlFor="tour_type">Necha kishi</label>
+          <label htmlFor="price_description">Necha kishi</label>
           <input
             type="text"
             className="form-control"
-            id="price"
+            id="price_description"
             value={editadobe.price_description}
             onChange={(e) =>
               setEditadobe({ ...editadobe, price_description: e.target.value })
@@ -139,11 +144,11 @@ export default function AdobeEdit({
           />
         </div>
         <div className="form-group my-3">
-          <label htmlFor="regions" className="my-2">
+          <label htmlFor="region_id" className="my-2">
             Viloyat
           </label>
           <select
-            id="regions"
+            id="region_id"
             className="form-control"
             value={editadobe.region_id}
             onChange={(e) =>
@@ -158,11 +163,11 @@ export default function AdobeEdit({
           </select>
         </div>
         <div className="form-group my-3">
-          <label htmlFor="districts" className="my-2">
-            Foydalanuvchi
+          <label htmlFor="district_id" className="my-2">
+            Tuman
           </label>
           <select
-            id="districts"
+            id="district_id"
             className="form-control"
             value={editadobe.district_id}
             onChange={(e) =>
