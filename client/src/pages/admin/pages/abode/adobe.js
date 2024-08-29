@@ -81,12 +81,12 @@ const Adobe = () => {
     data.append("country", formData.country);
     data.append("region_id", selectedRegion);
     data.append("district_id", selectedDistrict);
-    data.append("status", formData.status); // Ensure status is added
+    data.append("status", formData.status);
     data.append("user_id", userDetails.id);
     postTour(data)
       .then((response) => {
         if (response.data.Status) {
-          alert("Tour added successfully");
+          alert("Maskanlar qo'shish");
           setFormData({
             title: "",
             description: "",

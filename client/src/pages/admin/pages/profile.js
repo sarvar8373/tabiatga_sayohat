@@ -105,7 +105,7 @@ export default function Profile() {
           </div>
         </>
       ) : (
-        <p>Loading user details...</p>
+        <p>Yuklanmoqda...</p>
       )}
       {error && <div className="alert alert-danger">{error}</div>}
     </div>

@@ -62,11 +62,31 @@ export default function Bussiness() {
                 {" "}
                 <Bar
                   data={{
-                    labels: ["2022", "2023", "2024"],
+                    labels: ["2024"],
                     datasets: [
                       {
-                        label: "Maskanlar",
+                        label: "Kemping",
                         data: [200, 100, 300],
+                      },
+                      {
+                        label: "Piyoda yurish",
+                        data: [50, 60, 90],
+                      },
+                      {
+                        label: "Plyaj sayohatlari",
+                        data: [10, 20, 30],
+                      },
+                      {
+                        label: "Serfinglar",
+                        data: [50, 60, 90],
+                      },
+                      {
+                        label: "Velikda yurish",
+                        data: [50, 60, 90],
+                      },
+                      {
+                        label: "Safarlar",
+                        data: [50, 60, 90],
                       },
                     ],
                   }}

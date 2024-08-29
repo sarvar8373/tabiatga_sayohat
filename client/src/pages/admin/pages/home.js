@@ -62,14 +62,30 @@ export default function Home() {
                 {" "}
                 <Bar
                   data={{
-                    labels: ["2022", "2023", "2024"],
+                    labels: ["2024"],
                     datasets: [
                       {
-                        label: "Viloyat",
+                        label: "Kemping",
                         data: [200, 100, 300],
                       },
                       {
-                        label: "Tuman",
+                        label: "Piyoda yurish",
+                        data: [50, 60, 90],
+                      },
+                      {
+                        label: "Plyaj sayohatlari",
+                        data: [10, 20, 30],
+                      },
+                      {
+                        label: "Serfinglar",
+                        data: [50, 60, 90],
+                      },
+                      {
+                        label: "Velikda yurish",
+                        data: [50, 60, 90],
+                      },
+                      {
+                        label: "Safarlar",
                         data: [50, 60, 90],
                       },
                     ],
@@ -88,10 +104,14 @@ export default function Home() {
               <div className="chart-pie pt-4 pb-2">
                 <Doughnut
                   data={{
-                    labels: ["Foydalanuvchi", "Foydalanuvchi", "Tadbirkor"],
+                    labels: [
+                      "Top maskanlar",
+                      "Ko'p so'rov yuborilgan maskanlar",
+                      "Maskanlar",
+                    ],
                     datasets: [
                       {
-                        label: "My First Dataset",
+                        label: "Soni",
                         data: [300, 50, 100],
                         backgroundColor: [
                           "rgb(255, 99, 132)",
