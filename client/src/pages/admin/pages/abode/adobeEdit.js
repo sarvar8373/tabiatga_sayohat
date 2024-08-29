@@ -25,38 +25,17 @@ export default function AdobeEdit({
       return;
     }
 
-    // Check if any required field is missing
-    if (
-      !editadobe.title ||
-      !editadobe.description ||
-      !editadobe.price ||
-      !editadobe.price_description ||
-      !editadobe.region_id ||
-      !editadobe.district_id ||
-      !editadobe.status ||
-      !editadobe.tourism_service_id
-    ) {
-      alert("Please fill in all required fields.");
-      console.log("EditAdobe state:", editadobe); // Debug: Log the editadobe state
-      return;
-    }
-
     const formData = new FormData();
     formData.append("title", editadobe.title);
     formData.append("description", editadobe.description);
-    formData.append("tourism_service_id", editadobe.tourism_service_id);
     formData.append("price", editadobe.price);
     formData.append("price_description", editadobe.price_description);
     formData.append("region_id", editadobe.region_id);
     formData.append("district_id", editadobe.district_id);
     formData.append("status", editadobe.status);
+    formData.append("tourism_service_id", editadobe.tourism_service_id);
     if (editadobe.image instanceof File) {
       formData.append("image", editadobe.image);
-    }
-
-    // Debug: Log FormData entries
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
     }
 
     putTour(editadobe.id, formData)
@@ -64,13 +43,10 @@ export default function AdobeEdit({
         if (result.data.Status) {
           onSave(result.data.Result);
         } else {
-          alert(result.data.Error || "An error occurred while updating.");
+          alert(result.data.Error);
         }
       })
-      .catch((err) => {
-        console.error("Error updating adobe:", err);
-        alert("An error occurred while updating.");
-      });
+      .catch((err) => console.log(err));
   };
 
   return (

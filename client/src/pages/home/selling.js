@@ -64,13 +64,10 @@ export default function Selling() {
                   </Link>
                   <p className="price">{adventure.price}</p>
                   <p>{adventure.price_description}</p>
-                  <button
-                    type="button"
-                    className="btn btn-theme px-3 py-2"
-                    data-bs-toggle="modal"
-                    data-bs-target="#exampleModal"
-                  >
-                    Buyurtma berish
+                  <button type="button" className="btn btn-theme px-3 py-2">
+                    <Link className="text-white" to={`/detail/${adventure.id}`}>
+                      Ko'proq ma'lumot
+                    </Link>
                   </button>
                   <Modal />
                 </div>

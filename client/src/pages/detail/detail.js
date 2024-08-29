@@ -59,12 +59,12 @@ export default function Detail() {
           <div className="row justify-content-center">
             <div className="col">
               <div className="bradcumb text-center">
-                <h3>Postlar</h3>
+                <h3>{tour.title}</h3>
                 <ul>
                   <li>
                     <a href="/">Bosh sahifa</a>
                   </li>
-                  <li>Tizimga kirish</li>
+                  <li>{tour.title}</li>
                 </ul>
               </div>
             </div>

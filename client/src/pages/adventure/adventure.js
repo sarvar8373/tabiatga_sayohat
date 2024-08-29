@@ -16,7 +16,6 @@ export default function Adventure() {
   const [adventurePerPage] = useState(4);
   const [selectedAdventure, setSelectedAdventure] = useState(null);
   const [showModal, setShowModal] = useState(false); // State for modal visibility
-  const totalPages = Math.ceil(adventures.length / adventurePerPage);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -34,7 +33,17 @@ export default function Adventure() {
     fetchPost();
   }, []);
 
+  // Pagination logic
+  const indexOfLastAdventure = currentPage * adventurePerPage;
+  const indexOfFirstAdventure = indexOfLastAdventure - adventurePerPage;
+  const currentAdventures = adventures.slice(
+    indexOfFirstAdventure,
+    indexOfLastAdventure
+  );
+  const totalPages = Math.ceil(adventures.length / adventurePerPage);
+
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   const truncateDescription = (text, wordLimit) => {
     const words = text.split(" ");
     if (words.length <= wordLimit) return text;
@@ -91,7 +100,7 @@ export default function Adventure() {
                 <div className="col-lg-4">
                   <div className="adventure-select">
                     <form action="#" className="adventure-select-form style-2">
-                      <select
+                      {/* <select
                         className="form-select"
                         aria-label="Default select example"
                         defaultValue="1" // This sets the initial selected value
@@ -101,14 +110,9 @@ export default function Adventure() {
                         </option>
                         <option value="1">Qimmat</option>
                         <option value="2">Arzon</option>
-                      </select>
+                      </select> */}
                       <div className="view-grid">
                         <ul>
-                          <li>
-                            <a href="/">
-                              <i className="fal fa-th"></i>
-                            </a>
-                          </li>
                           <li className="active">
                             <a href="/">
                               <i className="fal fa-list-ul"></i>
@@ -120,7 +124,7 @@ export default function Adventure() {
                   </div>
                 </div>
               </div>
-              {adventures.map((adventure) => (
+              {currentAdventures.map((adventure) => (
                 <div className="single-adventure style-2" key={adventure.id}>
                   <div
                     className="advanture-thumb"
@@ -165,16 +169,15 @@ export default function Adventure() {
                       {adventure.price}{" "}
                       <small>{adventure.priceDescription}</small>
                     </p>
-                    <Button
-                      type="button"
-                      className="btn btn-theme px-3 py-2 mx-3 border-0"
-                      onClick={() => {
-                        setSelectedAdventure(adventure);
-                        setShowModal(true);
-                      }}
-                    >
-                      Buyurtma berish
-                    </Button>
+
+                    <button type="button" className="btn btn-theme px-3 py-2">
+                      <Link
+                        className="text-white"
+                        to={`/detail/${adventure.id}`}
+                      >
+                        Ko'proq ma'lumot
+                      </Link>
+                    </button>
                   </div>
                 </div>
               ))}

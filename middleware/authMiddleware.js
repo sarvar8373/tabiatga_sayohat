@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken";
 
 // Middleware to verify JWT tokens
 const verifyUser = (req, res, next) => {
-  const token = req.cookies.token;
+  let token = req.cookies.token;
+  if (!token) token = localStorage.getItem("token");
   if (!token) {
     return res
       .status(401)

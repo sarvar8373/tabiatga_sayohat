@@ -9,6 +9,7 @@ export default function Register() {
   const [full_name, setFull_name] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("");
   const [passwordMatch, setPasswordMatch] = useState(true); // Track password match
   const navigate = useNavigate();
 
@@ -25,6 +26,7 @@ export default function Register() {
         phone_number,
         full_name,
         password,
+        role,
       });
 
       if (response.data.Status) {
@@ -134,9 +136,22 @@ export default function Register() {
                     </div>
                     {!passwordMatch && (
                       <div className="error-message">
-                        Passwords do not match!
+                        Tasdiqlash paroli xato!
                       </div>
                     )}
+                    <div className="single-field">
+                      <select
+                        id="role"
+                        name="role"
+                        className="form-control"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        required
+                      >
+                        <option value="customer">Foydalanuvchi</option>
+                        <option value="user">Tadbirkor</option>
+                      </select>
+                    </div>
                     <div className="password">
                       <p className="aggri">
                         <input type="checkbox" />

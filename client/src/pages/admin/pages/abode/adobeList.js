@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { BASE_URL } from "../../../../api/host/host";
 import AdobeEdit from "./adobeEdit";
 import debounce from "lodash/debounce";
@@ -31,9 +31,6 @@ export default function AdobeList() {
   // Handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const debouncedSearch = debounce(() => {
-    handleSearch();
-  }, 300);
   useEffect(() => {
     getRegions()
       .then((response) => {
@@ -96,6 +93,7 @@ export default function AdobeList() {
       .then((response) => {
         if (response.data.Status) {
           setTours(tours.filter((tour) => tour.id !== id));
+          setFilteredPosts(filteredPosts.filter((p) => p.id !== id));
         }
       })
       .catch((error) => console.error("Error deleting tour:", error));
@@ -117,64 +115,80 @@ export default function AdobeList() {
       setEditMode(true);
     }
   };
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     const titleSearchTerm = searchTerm.trim().toLowerCase();
     const regionSearchTerm = searchTerm1.trim().toLowerCase();
     const priceSearchTerm = searchTerm2.trim().toLowerCase();
 
     const filtered = tours.filter((post) => {
       const matchesTitle = post.title.toLowerCase().includes(titleSearchTerm);
-
       const region = regions.find((cat) => cat.id === post.region_id);
-      const matchesregion = region
+      const matchesRegion = region
         ? region.name.toLowerCase().includes(regionSearchTerm)
         : true;
-
       const matchesPrice = post.price.toLowerCase().includes(priceSearchTerm);
-      if (userDetails && userDetails.role === "region") {
-        return (
-          matchesTitle &&
-          matchesregion &&
-          matchesPrice &&
-          post.region_id === userDetails.region_id
-        );
-        // Exclude users with other roles
-      }
-      if (userDetails && userDetails.role === "district") {
-        return (
-          matchesTitle &&
-          matchesregion &&
-          matchesPrice &&
-          post.district_id === userDetails.district_id
-        );
-        // Exclude users with other roles
-      }
-      if (userDetails && userDetails.role === "user") {
-        return (
-          matchesTitle &&
-          matchesregion &&
-          matchesPrice &&
-          post.user_id === userDetails.user_id
-        );
-        // Exclude users with other roles
-      }
 
-      // For other roles, return all matched users
-      return matchesTitle && matchesregion && matchesPrice;
+      if (userDetails) {
+        if (userDetails.role === "region") {
+          return (
+            matchesTitle &&
+            matchesRegion &&
+            matchesPrice &&
+            post.region_id === userDetails.region_id
+          );
+        }
+        if (userDetails.role === "district") {
+          return (
+            matchesTitle &&
+            matchesRegion &&
+            matchesPrice &&
+            post.district_id === userDetails.district_id
+          );
+        }
+        if (userDetails.role === "user") {
+          return (
+            matchesTitle &&
+            matchesRegion &&
+            matchesPrice &&
+            post.user_id === userDetails.user_id
+          );
+        }
+      }
+      return matchesTitle && matchesRegion && matchesPrice;
     });
     setFilteredPosts(filtered);
-  };
+  }, [regions, tours, searchTerm, searchTerm1, searchTerm2, userDetails]);
+
   const handleSave = (updatedAdobe) => {
     if (updatedAdobe && updatedAdobe.id) {
-      setTours(
-        tours.map((tour) => (tour.id === updatedAdobe.id ? updatedAdobe : tour))
-      );
+      setTours((prevTours) => {
+        const updatedTours = prevTours.map((tour) =>
+          tour.id === updatedAdobe.id ? updatedAdobe : tour
+        );
+        return updatedTours;
+      });
+
+      setFilteredPosts((prevFilteredPosts) => {
+        const updatedFilteredPosts = prevFilteredPosts.map((adobe) =>
+          adobe.id === updatedAdobe.id ? updatedAdobe : adobe
+        );
+        return updatedFilteredPosts;
+      });
     }
     setEditMode(false);
   };
+
   useEffect(() => {
+    const debouncedSearch = debounce(() => {
+      handleSearch();
+    }, 300);
     debouncedSearch();
-  }, [filteredPosts, searchTerm, searchTerm1, searchTerm2]);
+    // Cleanup function to cancel debounce on component unmount
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [handleSearch]);
+
   return (
     <div className="container-fluid px-4">
       {editMode ? (
@@ -211,13 +225,22 @@ export default function AdobeList() {
                     style={{ width: "50%" }}
                   />
                 </th>
-                <th className="text-light">Narxi</th>
+                <th className="text-light">
+                  {" "}
+                  <SearchItem
+                    searchTerm={searchTerm2}
+                    setSearchTerm={setSearchTerm2}
+                    handleSearch={handleSearch}
+                    placeholder="Narxi"
+                    style={{ width: "50%" }}
+                  />
+                </th>
                 <th className="text-light">Holati</th>
                 <th className="text-light">Rasmi</th>
               </tr>
             </thead>
             <tbody>
-              {filteredPosts.map((c, index) => (
+              {currentPosts.map((c, index) => (
                 <tr key={c.id}>
                   <td>{index + 1}</td>
                   <td>{c.title}</td>
@@ -261,6 +284,18 @@ export default function AdobeList() {
               ))}
             </tbody>
           </table>
+          <div className="gane-pagination mt-30 text-center">
+            <ul>
+              {[...Array(totalPages)].map((_, index) => (
+                <li
+                  key={index + 1}
+                  className={currentPage === index + 1 ? "active" : ""}
+                >
+                  <span onClick={() => paginate(index + 1)}>{index + 1}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </>
       )}
     </div>

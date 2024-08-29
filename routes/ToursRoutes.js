@@ -81,47 +81,68 @@ router.delete("/tour/:id", (req, res) => {
 // Route to update a tour by ID
 router.put("/tour/:id", upload.single("image"), (req, res) => {
   const tourID = req.params.id;
-  const newTitle = req.body.title;
-  const newDescription = req.body.description;
+  const {
+    title,
+    description,
+    price,
+    price_description,
+    region_id,
+    district_id,
+    status,
+    tourism_service_id,
+  } = req.body;
   const newImage = req.file ? req.file.filename : null; // Use `null` if no file is uploaded
-  const newPrice = req.body.price;
-  const newPriceDescription = req.body.price_description;
-  const newRegionId = req.body.region_id;
-  const newDistrictId = req.body.district_id;
-  const newStatus = req.body.status;
-  const newTourType = req.body.tourism_service_id;
 
   // Start building the SQL query
-  let sql =
-    "UPDATE tours SET title=?, description=?, tourism_service_id=?, price=?, price_description=?, region_id=?, district_id=?, status=?";
+  let sql = `
+    UPDATE tours 
+    SET title = ?, 
+        description = ?, 
+        tourism_service_id = ?, 
+        price = ?, 
+        price_description = ?, 
+        region_id = ?, 
+        district_id = ?, 
+        status = ?`;
+
   let params = [
-    newTitle,
-    newDescription,
-    newPrice,
-    newPriceDescription,
-    newRegionId,
-    newDistrictId,
-    newStatus,
-    newTourType,
+    title,
+    description,
+    tourism_service_id,
+    price,
+    price_description,
+    region_id,
+    district_id,
+    status,
   ];
 
   // Add the image field to the SQL query and parameters if an image is provided
   if (newImage) {
-    sql += ", image=?";
+    sql += ", image = ?";
     params.push(newImage);
   }
 
   // Finish the SQL query with the WHERE clause
-  sql += " WHERE id=?";
+  sql += " WHERE id = ?";
 
   // Add the tourID to the parameters
   params.push(tourID);
 
   DB.query(sql, params, (err, result) => {
-    if (err) return res.json({ Status: false, Error: "Query error" });
+    if (err) {
+      console.error("SQL Error:", err);
+      return res.json({ Status: false, Error: "Query error" });
+    }
 
     if (result.affectedRows > 0) {
-      return res.json({ Status: true, Message: "Tour updated successfully" });
+      // Fetch the updated tour data
+      DB.query("SELECT * FROM tours WHERE id = ?", [tourID], (err, rows) => {
+        if (err) {
+          console.error("SQL Error:", err);
+          return res.json({ Status: false, Error: "Query error" });
+        }
+        return res.json({ Status: true, Result: rows[0] });
+      });
     } else {
       return res.json({
         Status: false,
