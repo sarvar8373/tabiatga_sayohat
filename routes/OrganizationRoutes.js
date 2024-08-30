@@ -147,55 +147,79 @@ router.put("/organizations/:id", (req, res) => {
 
   const sql = `
     UPDATE organization_details SET 
-      inn_pinfl = ?, org_name = ?, reg_code_nds = ?, address = ?, phone = ?, 
-      main_rc = ?, mfo = ?, region = ?, district = ?, oked = ?, 
-      director_name = ?, director_pinfl = ?, chief_accountant = ?, 
-      goods_issued_by = ?, nds = ?, excise_tax = ?, origin_of_goods = ?, 
-      auto_fill_cf_by_contract_id = ?, accept_discount_offers = ?, status=? 
+      inn_pinfl = ?, 
+      org_name = ?, 
+      reg_code_nds = ?, 
+      address = ?, 
+      phone = ?, 
+      main_rc = ?, 
+      mfo = ?, 
+      region = ?, 
+      district = ?, 
+      oked = ?, 
+      director_name = ?, 
+      director_pinfl = ?, 
+      chief_accountant = ?, 
+      goods_issued_by = ?, 
+      nds = ?, 
+      excise_tax = ?, 
+      origin_of_goods = ?, 
+      auto_fill_cf_by_contract_id = ?, 
+      accept_discount_offers = ?, 
+      status = ? 
     WHERE id = ?
   `;
 
-  DB.query(
-    sql,
-    [
-      inn_pinfl,
-      org_name,
-      reg_code_nds,
-      address,
-      phone,
-      main_rc,
-      mfo,
-      region,
-      district,
-      oked,
-      director_name,
-      director_pinfl,
-      chief_accountant,
-      goods_issued_by,
-      nds,
-      excise_tax,
-      origin_of_goods,
-      auto_fill_cf_by_contract_id,
-      accept_discount_offers,
-      organizationId,
-      status,
-    ],
-    (err, result) => {
-      if (err) return res.json({ Status: false, Error: "Query error" });
+  const params = [
+    inn_pinfl,
+    org_name,
+    reg_code_nds,
+    address,
+    phone,
+    main_rc,
+    mfo,
+    region,
+    district,
+    oked,
+    director_name,
+    director_pinfl,
+    chief_accountant,
+    goods_issued_by,
+    nds,
+    excise_tax,
+    origin_of_goods,
+    auto_fill_cf_by_contract_id,
+    accept_discount_offers,
+    status,
+    organizationId,
+  ];
 
-      if (result.affectedRows > 0) {
-        return res.json({
-          Status: true,
-          Message: "Organization updated successfully",
-        });
-      } else {
-        return res.json({
-          Status: false,
-          Error: "Organization not found or not updated",
-        });
-      }
+  DB.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("SQL Error:", err);
+      return res.json({ Status: false, Error: "Query error" });
     }
-  );
+
+    if (result.affectedRows > 0) {
+      // Fetch the updated organization data
+      DB.query(
+        "SELECT * FROM organization_details WHERE id = ?",
+        [organizationId],
+        (err, rows) => {
+          if (err) {
+            console.error("SQL Error:", err);
+            return res.json({ Status: false, Error: "Query error" });
+          }
+          return res.json({ Status: true, Result: rows[0] });
+        }
+      );
+    } else {
+      return res.json({
+        Status: false,
+        Error: "Organization not found or not updated",
+      });
+    }
+  });
 });
 
 export { router as OrganizationRouter };

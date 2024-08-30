@@ -19,60 +19,10 @@ const OrganizationEdit = ({ organization, onSave, onCancel }) => {
       setEditOrganization(organization);
     }
   }, [organization]);
-  // const [formData, setFormData] = useState({
-  //   inn_pinfl: "",
-  //   org_name: "",
-  //   reg_code_nds: "",
-  //   address: "",
-  //   phone: "",
-  //   main_rc: "",
-  //   mfo: "",
-  //   region: "",
-  //   district: "",
-  //   oked: "",
-  //   director_name: "",
-  //   director_pinfl: "",
-  //   chief_accountant: "",
-  //   goods_issued_by: "",
-  //   nds: "",
-  //   excise_tax: "",
-  //   origin_of_goods: "",
-  //   auto_fill_cf_by_contract_id: "",
-  //   accept_discount_offers: "",
-  //   user_id: "",
-  //   status: "0",
-  // });
+
   const handleUpdate = () => {
     if (!editOrganization || !editOrganization.id) {
       alert("Adobe data is missing or incorrect.");
-      return;
-    }
-
-    // Check if any required field is missing
-    if (
-      !editOrganization.inn_pinfl ||
-      !editOrganization.org_name ||
-      !editOrganization.reg_code_nds ||
-      !editOrganization.address ||
-      !editOrganization.phone ||
-      !editOrganization.main_rc ||
-      !editOrganization.mfo ||
-      !editOrganization.region ||
-      !editOrganization.district ||
-      !editOrganization.oked ||
-      !editOrganization.director_name ||
-      !editOrganization.chief_accountant ||
-      !editOrganization.goods_issued_by ||
-      !editOrganization.nds ||
-      !editOrganization.excise_tax ||
-      !editOrganization.origin_of_goods ||
-      !editOrganization.auto_fill_cf_by_contract_id ||
-      !editOrganization.accept_discount_offers ||
-      !editOrganization.user_id ||
-      !editOrganization.status
-    ) {
-      alert("Please fill in all required fields.");
-      console.log("editOrganization state:", editOrganization.id); // Debug: Log the editOrganization state
       return;
     }
 
@@ -93,20 +43,16 @@ const OrganizationEdit = ({ organization, onSave, onCancel }) => {
     formData.append("excise_tax", editOrganization.excise_tax);
     formData.append("origin_of_goods", editOrganization.origin_of_goods);
     formData.append(
-      "origin_of_goods",
+      "auto_fill_cf_by_contract_id",
       editOrganization.auto_fill_cf_by_contract_id
     );
-    formData.append("origin_of_goods", editOrganization.user_id);
-    formData.append("origin_of_goods", editOrganization.status);
-
-    // Debug: Log FormData entries
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
+    formData.append("user_id", editOrganization.user_id);
+    formData.append("status", editOrganization.status);
 
     putOrganization(editOrganization.id, formData)
       .then((result) => {
         if (result.data.Status) {
+          console.log(result.data.Result);
           onSave(result.data.Result);
         } else {
           alert(result.data.Error || "An error occurred while updating.");
@@ -394,49 +340,25 @@ const OrganizationEdit = ({ organization, onSave, onCancel }) => {
                   }
                 />
               </div>
-              {/* <div className="single-field half-field-last">
-                <label
-                  htmlFor="exampleFormControlInput1"
-                  className="form-label"
-                >
-                  Foydalanucvchi
-                </label>
-                <select
-                  className="form-select mb-4"
-                  aria-label="Default select example"
-                  name="user_id" // Add name attribute here
-                  onChange={(e) =>
-                    setEditOrganization({ ...editOrganization, : e.target.value })
-                  }
-                  value={formData.user_id} // Set value to control the selected option
-                >
-                  <option value="">Tadbirkorni tanlang</option>
-                  {authors.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.full_name}
-                    </option>
-                  ))}
-                </select>
-              </div> */}
+
               {userDetails.role === "admin" && (
-                <div className="form-group my-3">
-                  <label htmlFor="status" className="my-2">
-                    Holati
-                  </label>
-                  <select
-                    id="status"
-                    className="form-control"
-                    value={editOrganization.status}
-                    onChange={(e) =>
-                      setEditOrganization({
-                        ...editOrganization,
-                        status: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="0">Tasdiqlanmagan</option>
-                    <option value="1">Tasdiqlangan</option>
-                  </select>
+                <div className="single-field half-field mx-0 ms-5">
+                  <div className="form-group my-3">
+                    <select
+                      id="status"
+                      className="form-control"
+                      value={editOrganization.status}
+                      onChange={(e) =>
+                        setEditOrganization({
+                          ...editOrganization,
+                          status: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="0">Tasdiqlanmagan</option>
+                      <option value="1">Tasdiqlangan</option>
+                    </select>
+                  </div>
                 </div>
               )}
               <button
