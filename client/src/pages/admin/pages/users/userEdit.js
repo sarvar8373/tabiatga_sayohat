@@ -1,86 +1,47 @@
 import React, { useEffect, useState } from "react";
-import { getRegions, getSelectRegion } from "../../../../http/usersApi";
+import { putUser } from "../../../../http/usersApi";
 
-const EditUserForm = ({ user, onSubmit }) => {
-  const [regions, setRegions] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
+const EditUserForm = ({ user, regions, districts, onSave, onCancel }) => {
+  const [editUser, setEditUser] = useState(user);
   const [error, setError] = useState("");
   const [role, setRole] = useState("");
 
   useEffect(() => {
-    getRegions()
-      .then((response) => {
-        if (response.data.Status) {
-          setRegions(response.data.Result);
-        } else {
-          setError(response.data.Error);
-        }
-      })
-      .catch((err) => {
-        setError("Error fetching regions.");
-        console.error(err);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (selectedRegion) {
-      getSelectRegion(selectedRegion)
-        .then((response) => {
-          if (response.data.Status) {
-            setDistricts(response.data.Result);
-          } else {
-            setError(response.data.Error);
-          }
-        })
-        .catch((err) => {
-          setError("Error fetching districts.");
-          console.error(err);
-        });
-    } else {
-      setDistricts([]);
-    }
-  }, [selectedRegion]);
-
-  useEffect(() => {
     if (user) {
-      setPhoneNumber(user.phone_number);
-      setFullName(user.full_name);
-      setPassword(""); // Clear the password field on user change
-      setRole(user.role);
-      setSelectedRegion(user.region_id || ""); // Update the region if provided
-      setSelectedDistrict(user.district_id || ""); // Update the district if provided
+      setEditUser(user);
     }
   }, [user]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Prepare the payload
-    const payload = {
-      id: user.id,
-      phone_number: phoneNumber,
-      full_name: fullName,
-      role: role,
-      region_id: selectedRegion,
-      district_id: selectedDistrict,
-    };
-
-    // Include password only if it's not empty
-    if (password.trim() !== "") {
-      payload.password = password;
+  const handleUpdate = () => {
+    if (!editUser || !editUser.id) {
+      alert("Foydalanuvchi ma'lumotlari noto'g'ri kiritilgan.");
+      return;
     }
 
-    // Pass the payload to the onSubmit function
-    onSubmit(payload);
+    const formData = new FormData();
+    formData.append("phone_number", editUser.phone_number);
+    formData.append("full_name", editUser.full_name);
+    if (editUser.password && editUser.password.trim()) {
+      formData.append("password", editUser.password);
+    }
+    formData.append("role", editUser.role);
+    formData.append("region_id", editUser.region_id);
+    formData.append("district_id", editUser.district_id);
+
+    putUser(editUser.id, formData)
+      .then((result) => {
+        if (result.data.Status) {
+          console.log(result.data.Result);
+          onSave(result.data.Result);
+        } else {
+          alert(result.data.Error);
+        }
+      })
+      .catch((err) => console.log(err));
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form>
       <div className="mb-3">
         <label htmlFor="phone_number" className="form-label">
           Telefon raqami
@@ -90,8 +51,10 @@ const EditUserForm = ({ user, onSubmit }) => {
           type="text"
           id="phone_number"
           className="form-control"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
+          value={editUser.phone_number}
+          onChange={(e) =>
+            setEditUser({ ...editUser, phone_number: e.target.value })
+          }
         />
       </div>
       <div className="mb-3">
@@ -102,8 +65,10 @@ const EditUserForm = ({ user, onSubmit }) => {
           type="text"
           id="full_name"
           className="form-control"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
+          value={editUser.full_name}
+          onChange={(e) =>
+            setEditUser({ ...editUser, full_name: e.target.value })
+          }
         />
       </div>
       <div className="mb-3">
@@ -114,8 +79,10 @@ const EditUserForm = ({ user, onSubmit }) => {
           type="password"
           id="password"
           className="form-control"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={editUser.password || ""}
+          onChange={(e) =>
+            setEditUser({ ...editUser, password: e.target.value })
+          }
           placeholder="Yangi parol (agar o'zgartirmoqchi bo'lsangiz)"
         />
       </div>
@@ -123,11 +90,13 @@ const EditUserForm = ({ user, onSubmit }) => {
         <label htmlFor="region">Viloyat</label>
         <select
           id="region"
-          value={selectedRegion}
-          onChange={(e) => setSelectedRegion(e.target.value)}
+          value={editUser.region_id}
+          onChange={(e) =>
+            setEditUser({ ...editUser, region_id: e.target.value })
+          }
           className="form-control"
         >
-          <option value="">Viloyatni tanlang</option>
+          <option value="">Viloyatni tanlash</option>
           {regions.map((region) => (
             <option key={region.id} value={region.id}>
               {region.name}
@@ -139,12 +108,14 @@ const EditUserForm = ({ user, onSubmit }) => {
         <label htmlFor="district">Tuman</label>
         <select
           id="district"
-          value={selectedDistrict}
-          onChange={(e) => setSelectedDistrict(e.target.value)}
+          value={editUser.district_id}
+          onChange={(e) =>
+            setEditUser({ ...editUser, district_id: e.target.value })
+          }
           className="form-control"
-          disabled={!selectedRegion}
         >
-          <option value="">Tumanni tanlang</option>
+          {" "}
+          <option value="">Tumanni tanlash</option>
           {districts.map((district) => (
             <option key={district.id} value={district.id}>
               {district.name}
@@ -159,8 +130,8 @@ const EditUserForm = ({ user, onSubmit }) => {
         <select
           id="role"
           className="form-select"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
+          value={editUser.role}
+          onChange={(e) => setEditUser({ ...editUser, role: e.target.value })}
         >
           <option value="customer">Foydalanuvchi</option>
           <option value="admin">Departament</option>
@@ -169,7 +140,7 @@ const EditUserForm = ({ user, onSubmit }) => {
           <option value="district">Tuman</option>
         </select>
       </div>
-      <button type="submit" className="btn btn-primary">
+      <button type="button" className="btn btn-primary" onClick={handleUpdate}>
         Saqlash
       </button>
     </form>

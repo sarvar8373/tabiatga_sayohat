@@ -99,7 +99,7 @@ export default function UserAdd() {
               />
             </div>
             {!passwordMatch && (
-              <div className="error-message">Passwords do not match!</div>
+              <div className="error-message">Tasdiqlash paroli xato!</div>
             )}
             {/* <div className="password">
               <p className="aggri">

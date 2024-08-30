@@ -7,7 +7,6 @@ import {
   getDistricts,
   getRegions,
   getUsers,
-  putUser,
 } from "../../../../http/usersApi";
 import { useAuth } from "../../../../context/AuthContext";
 
@@ -17,13 +16,21 @@ export default function UsersList() {
   const [districts, setDistricts] = useState([]);
   const [error, setError] = useState("");
   const [editUser, setEditUser] = useState(null);
+  const [editMode, setEditMode] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); // For phone search
-  const [searchTerm1, setSearchTerm1] = useState(""); // For full name search
-  const [searchTerm3, setSearchTerm3] = useState(""); // For region search
-  const [searchTerm4, setSearchTerm4] = useState(""); // For district search
-  const { userDetails } = useAuth(); // For storing current user
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm1, setSearchTerm1] = useState("");
+  const [searchTerm3, setSearchTerm3] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [searchTerm4, setSearchTerm4] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [postsPerPage] = useState(10);
+  const { userDetails } = useAuth();
 
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredUsers.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(filteredUsers.length / postsPerPage);
   const roleLabels = {
     customer: "Foydalanuvchi",
     admin: "Departament",
@@ -32,6 +39,7 @@ export default function UsersList() {
     district: "Tuman",
   };
 
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
   // Fetch regions
   useEffect(() => {
     getRegions()
@@ -80,7 +88,22 @@ export default function UsersList() {
         setError("Error fetching users.");
       });
   }, []);
+  const handleEdit = (user) => {
+    if (user) {
+      setSelectedUser(user);
+      setEditMode(true);
+    }
+  };
 
+  const getRegionName = (id) => {
+    const region = regions.find((r) => r.id === id);
+    return region ? region.name : "";
+  };
+
+  const getDistrictName = (id) => {
+    const district = districts.find((d) => d.id === id);
+    return district ? district.name : "";
+  };
   // Memoize handleSearch function
   const handleSearch = useCallback(() => {
     const phoneSearchTerm = searchTerm.trim().toLowerCase();
@@ -118,10 +141,9 @@ export default function UsersList() {
             user.region_id === userDetails.region_id
           );
         }
-        return false; // Exclude users with other roles
+        return false;
       }
       if (userDetails && userDetails.role === "district") {
-        // For users with "region" role, only show "district" and "user" roles
         if (user.role === "user") {
           return (
             matchesPhone &&
@@ -131,7 +153,7 @@ export default function UsersList() {
             user.region_id === userDetails.region_id
           );
         }
-        return false; // Exclude users with other roles
+        return false;
       }
 
       // For other roles, return all matched users
@@ -149,9 +171,25 @@ export default function UsersList() {
     searchTerm1,
     searchTerm3,
     searchTerm4,
-    userDetails,
   ]);
+  const handleSave = (updatedUser) => {
+    if (updatedUser && updatedUser.id) {
+      setUsers((prevUser) => {
+        const updatedUsers = prevUser.map((user) =>
+          user.id === updatedUser.id ? updatedUser : user
+        );
+        return updatedUsers;
+      });
 
+      setFilteredUsers((prevFilteredPosts) => {
+        const updatedFilteredPosts = prevFilteredPosts.map((user) =>
+          user.id === updatedUser.id ? updatedUser : user
+        );
+        return updatedFilteredPosts;
+      });
+    }
+    setEditMode(false);
+  };
   // Debounce search function
   useEffect(() => {
     const debouncedSearch = debounce(() => {
@@ -178,155 +216,115 @@ export default function UsersList() {
       });
   };
 
-  const handleEdit = (user) => {
-    setEditUser(user);
-  };
-
-  const handleEditSubmit = (updatedUser) => {
-    putUser(updatedUser.id, updatedUser)
-      .then((result) => {
-        if (result.data.Status) {
-          setUsers(
-            users.map((user) =>
-              user.id === updatedUser.id ? updatedUser : user
-            )
-          );
-          setEditUser(null);
-        } else {
-          setError(result.data.Error);
-          alert(error);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Error updating user.");
-      });
-  };
-
-  const getRegionName = (id) => {
-    const region = regions.find((r) => r.id === id);
-    return region ? region.name : "";
-  };
-
-  const getDistrictName = (id) => {
-    const district = districts.find((d) => d.id === id);
-    return district ? district.name : "";
-  };
-
   return (
     <div className="container-fluid px-4">
-      <h2 className="mt-4">Foydalanuvchilar</h2>
-      <table className="table table-striped">
-        <thead className="table-dark">
-          <tr>
-            <th className="text-light">ID</th>
-            <th className="text-light">
-              {" "}
-              <SearchItem
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                handleSearch={handleSearch}
-                placeholder="Telefon raqam"
-                style={{ width: "50%" }}
-              />
-            </th>
-            <th className="text-light">
-              <SearchItem
-                searchTerm={searchTerm1}
-                setSearchTerm={setSearchTerm1}
-                handleSearch={handleSearch}
-                placeholder="FIO"
-                style={{ width: "50%" }}
-              />
-            </th>
-            <th className="text-light">
-              <SearchItem
-                searchTerm={searchTerm3}
-                setSearchTerm={setSearchTerm3}
-                handleSearch={handleSearch}
-                placeholder="Viloyat"
-                style={{ width: "50%" }}
-              />
-            </th>
-            <th className="text-light">
-              <SearchItem
-                searchTerm={searchTerm4}
-                setSearchTerm={setSearchTerm4}
-                handleSearch={handleSearch}
-                placeholder="Tuman"
-                style={{ width: "50%" }}
-              />
-            </th>
-            <th className="text-light">Roli</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.map((c, index) => (
-            <tr key={c.id}>
-              <td>{index + 1}</td>
-              <td>{c.phone_number}</td>
-              <td>{c.full_name}</td>
-              <td>{getRegionName(c.region_id)}</td>
-              <td>{getDistrictName(c.district_id)}</td>
-              <td className="d-flex justify-content-between">
-                {roleLabels[c.role] || "Unknown"}
-                <div>
-                  {c.role === "admin" ? (
-                    <button
-                      onClick={() => handleEdit(c)}
-                      className="btn btn-warning mx-3"
-                    >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                  ) : (
+      {editMode ? (
+        <EditUserForm
+          user={selectedUser}
+          regions={regions}
+          districts={districts}
+          onSave={handleSave}
+          onCancel={() => setEditMode(false)}
+        />
+      ) : (
+        <>
+          <h2 className="mt-4">Foydalanuvchilar</h2>
+          <table className="table table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th className="text-light">ID</th>
+                <th className="text-light">
+                  <SearchItem
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    handleSearch={handleSearch}
+                    placeholder="Telefon raqam"
+                    style={{ width: "50%" }}
+                  />
+                </th>
+                <th className="text-light">
+                  <SearchItem
+                    searchTerm={searchTerm1}
+                    setSearchTerm={setSearchTerm1}
+                    handleSearch={handleSearch}
+                    placeholder="FIO"
+                    style={{ width: "50%" }}
+                  />
+                </th>
+                <th className="text-light">
+                  <SearchItem
+                    searchTerm={searchTerm3}
+                    setSearchTerm={setSearchTerm3}
+                    handleSearch={handleSearch}
+                    placeholder="Viloyat"
+                    style={{ width: "50%" }}
+                  />
+                </th>
+                <th className="text-light">
+                  <SearchItem
+                    searchTerm={searchTerm4}
+                    setSearchTerm={setSearchTerm4}
+                    handleSearch={handleSearch}
+                    placeholder="Tuman"
+                    style={{ width: "50%" }}
+                  />
+                </th>
+                <th className="text-light">Roli</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((c, index) => (
+                <tr key={c.id}>
+                  <td>{index + 1}</td>
+                  <td>{c.phone_number}</td>
+                  <td>{c.full_name}</td>
+                  <td>{getRegionName(c.region_id)}</td>
+                  <td>{getDistrictName(c.district_id)}</td>
+                  <td className="d-flex justify-content-between">
+                    {roleLabels[c.role] || "Unknown"}
                     <div>
-                      <button
-                        onClick={() => handleEdit(c)}
-                        className="btn btn-warning mx-3"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(c.id)}
-                        className="btn btn-danger"
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </button>
+                      {c.role === "admin" ? (
+                        <button
+                          onClick={() => handleEdit(c)}
+                          className="btn btn-warning mx-3"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                      ) : (
+                        <div>
+                          <button
+                            onClick={() => handleEdit(c)}
+                            className="btn btn-warning mx-3"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(c.id)}
+                            className="btn btn-danger"
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {editUser && (
-        <div
-          className="modal fade show"
-          tabIndex="-1"
-          style={{ display: "block" }}
-          aria-labelledby="editUserModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title" id="editUserModalLabel">
-                  O'zgartirish
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setEditUser(null)}
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div className="modal-body">
-                <EditUserForm user={editUser} onSubmit={handleEditSubmit} />
-              </div>
-            </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="gane-pagination mt-30 text-center">
+            <ul>
+              {[...Array(totalPages)].map((_, index) => (
+                <li
+                  key={index + 1}
+                  className={currentPage === index + 1 ? "active" : ""}
+                >
+                  <span onClick={() => paginate(index + 1)}>{index + 1}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

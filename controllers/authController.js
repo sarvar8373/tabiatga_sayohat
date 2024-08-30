@@ -102,18 +102,25 @@ const checkPhoneNumber = (req, res) => {
 
 // Update user details
 const updateUser = (req, res) => {
+  const userID = req.params.id;
   const { phone_number, full_name, password, role, region_id, district_id } =
     req.body;
-  const userID = req.params.id;
+
+  // Base SQL query and values
   let sql =
     "UPDATE users SET phone_number=?, full_name=?, role=?, region_id=?, district_id=? WHERE id=?";
   let values = [phone_number, full_name, role, region_id, district_id, userID];
+
+  // If password is provided and not empty, hash it
   if (password && password.trim() !== "") {
     bcrypt.hash(password, salt, (hashErr, hash) => {
-      if (hashErr)
+      if (hashErr) {
+        console.error("Hash Error:", hashErr);
         return res
           .status(500)
           .json({ Status: false, Error: "Error hashing password" });
+      }
+
       sql =
         "UPDATE users SET phone_number=?, full_name=?, password=?, role=?, region_id=?, district_id=? WHERE id=?";
       values = [
@@ -125,10 +132,67 @@ const updateUser = (req, res) => {
         district_id,
         userID,
       ];
-      DB.query(sql, values, handleQueryResult(res));
+
+      // Perform the update query with password
+      DB.query(sql, values, (err, result) => {
+        if (err) {
+          console.error("SQL Error:", err);
+          return res
+            .status(500)
+            .json({ Status: false, Error: "Database error" });
+        }
+
+        if (result.affectedRows > 0) {
+          // Fetch and return the updated user data
+          DB.query(
+            "SELECT * FROM users WHERE id = ?",
+            [userID],
+            (fetchErr, rows) => {
+              if (fetchErr) {
+                console.error("SQL Error:", fetchErr);
+                return res
+                  .status(500)
+                  .json({ Status: false, Error: "Database error" });
+              }
+              return res.json({ Status: true, Result: rows[0] });
+            }
+          );
+        } else {
+          return res
+            .status(404)
+            .json({ Status: false, Error: "User not found or not updated" });
+        }
+      });
     });
   } else {
-    DB.query(sql, values, handleQueryResult(res));
+    // Perform the update query without password
+    DB.query(sql, values, (err, result) => {
+      if (err) {
+        console.error("SQL Error:", err);
+        return res.status(500).json({ Status: false, Error: "Database error" });
+      }
+
+      if (result.affectedRows > 0) {
+        // Fetch and return the updated user data
+        DB.query(
+          "SELECT * FROM users WHERE id = ?",
+          [userID],
+          (fetchErr, rows) => {
+            if (fetchErr) {
+              console.error("SQL Error:", fetchErr);
+              return res
+                .status(500)
+                .json({ Status: false, Error: "Database error" });
+            }
+            return res.json({ Status: true, Result: rows[0] });
+          }
+        );
+      } else {
+        return res
+          .status(404)
+          .json({ Status: false, Error: "User not found or not updated" });
+      }
+    });
   }
 };
 
