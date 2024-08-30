@@ -7,7 +7,8 @@ export default function UserAdd() {
   const [full_name, setFull_name] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordMatch, setPasswordMatch] = useState(true); // Track password match
+  const [role, setRole] = useState("");
+  const [passwordMatch, setPasswordMatch] = useState(true);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
@@ -23,6 +24,7 @@ export default function UserAdd() {
         phone_number,
         full_name,
         password,
+        role,
       });
 
       if (response.data.Status) {
@@ -37,7 +39,6 @@ export default function UserAdd() {
   };
   const handleConfirmPasswordChange = (e) => {
     setConfirmPassword(e.target.value);
-    // Check if passwords match whenever the confirm password changes
     setPasswordMatch(password === e.target.value);
   };
 
@@ -98,6 +99,22 @@ export default function UserAdd() {
                 required
               />
             </div>
+            <div className="single-field">
+              <select
+                id="role"
+                name="role"
+                className="form-control"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+              >
+                <option value="customer">Foydalanuvchi</option>
+                <option value="user">Tadbirkor</option>
+                <option value="region">Viloyat</option>
+                <option value="district">Tuman</option>
+                <option value="admin">Departament</option>
+              </select>
+            </div>
             {!passwordMatch && (
               <div className="error-message">Tasdiqlash paroli xato!</div>
             )}
@@ -107,7 +124,7 @@ export default function UserAdd() {
                 Barcha qoidalariga roziman
               </p>
             </div> */}
-            <button className="btn btn-theme" type="submit">
+            <button className="btn btn-theme px-3 py-2" type="submit">
               Yaratish
             </button>
           </div>

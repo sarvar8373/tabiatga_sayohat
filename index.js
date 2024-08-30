@@ -15,7 +15,7 @@ import { OrdersRouter } from "./routes/OrderRoutes.js";
 import { authRouter } from "./routes/authRoutes.js";
 import { categoryRouter } from "./routes/categoriesRoutes.js";
 import { TourServiceRouter } from "./routes/tourServicesRoutes.js";
-
+import { NotificationRouter } from "./routes/notificationRoutes.js";
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -42,7 +42,7 @@ app.use("/orders", OrdersRouter);
 app.use("/statistics", Statistics);
 app.use("/pages", PagesRouter);
 app.use("/services", TourServiceRouter);
-
+app.use("/notification", NotificationRouter);
 app.listen(process.env.PORT || 9000, () => {
   console.log("Server runing");
 });

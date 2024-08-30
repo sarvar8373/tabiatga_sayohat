@@ -15,7 +15,6 @@ export default function UsersList() {
   const [regions, setRegions] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [error, setError] = useState("");
-  const [editUser, setEditUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -273,7 +272,7 @@ export default function UsersList() {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((c, index) => (
+              {currentPosts.map((c, index) => (
                 <tr key={c.id}>
                   <td>{index + 1}</td>
                   <td>{c.phone_number}</td>

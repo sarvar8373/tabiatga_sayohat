@@ -1,13 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { BASE_URL } from "../../../../api/host/host";
+import SearchItem from "../../../../components/search-item/searchItem";
+import debounce from "lodash/debounce";
+import { useAuth } from "../../../../context/AuthContext";
+import { getUsers } from "../../../../http/usersApi";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
+  const [filterOrders, setFilterOrders] = useState([]);
   const [users, setUsers] = useState({});
+  const [allUsers, setAllUsers] = useState({});
   const [tours, setTours] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [postsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm1, setSearchTerm1] = useState("");
+  const [searchTerm3, setSearchTerm3] = useState("");
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filterOrders.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(filterOrders.length / postsPerPage);
+  const { userDetails } = useAuth();
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -15,7 +34,7 @@ export default function Orders() {
         const response = await axios.get(`${BASE_URL}/orders/orders`);
         if (response.data.Status) {
           setOrders(response.data.Result);
-
+          setFilterOrders(response.data.Result);
           const tourPromises = response.data.Result.map((order) =>
             axios.get(`${BASE_URL}/tours/tour/${order.tour_id}`)
           );
@@ -52,68 +71,169 @@ export default function Orders() {
 
     fetchOrders();
   }, []);
-
+  useEffect(() => {
+    getUsers()
+      .then((userResult) => {
+        if (userResult.data.Status) {
+          setAllUsers(userResult.data.Result);
+        } else {
+          alert(userResult.data.Error);
+        }
+      })
+      .catch((err) => console.log(err));
+  }, []);
   const handleDelete = (id) => {
     // Implement delete functionality
   };
+  const handleSearch = useCallback(() => {
+    const authorSearchTerm = searchTerm.trim().toLowerCase();
+    const fioSearchTerm = searchTerm1.toLowerCase();
+    const regionSearchTerm = searchTerm3.toLowerCase();
 
-  const handleEdit = (order) => {
-    // Implement edit functionality
+    const filtered = orders.filter((order) => {
+      const author = allUsers.find((auth) => auth.id === order.user_id);
+      const matchesAuthor = author
+        ? author.full_name.toLowerCase().includes(authorSearchTerm)
+        : true;
+
+      // const matchesFullName = order.quantity
+      //   .toLowerCase()
+      //   .includes(fioSearchTerm);
+
+      if (userDetails && userDetails.role === "region") {
+        // For users with "region" role, only show "district" and "user" roles
+        if (order.role === "district" || order.role === "user") {
+          return matchesAuthor && order.user_id === userDetails.user_id;
+        }
+        return false;
+      }
+      if (userDetails && userDetails.role === "district") {
+        if (order.role === "user") {
+          return matchesAuthor && order.user_id === userDetails.user_id;
+        }
+        return false;
+      }
+
+      // For other roles, return all matched users
+      return matchesAuthor;
+    });
+
+    setFilterOrders(filtered);
+  }, [orders, allUsers, searchTerm, searchTerm1, searchTerm3]);
+  const handleSave = (updatedOrder) => {
+    if (updatedOrder && updatedOrder.id) {
+      setOrders((prevUser) => {
+        const updatedOrders = prevUser.map((order) =>
+          order.id === updatedOrder.id ? updatedOrder : order
+        );
+        return updatedOrders;
+      });
+
+      setFilterOrders((prevFilteredPosts) => {
+        const updatedFilteredPosts = prevFilteredPosts.map((order) =>
+          order.id === updatedOrder.id ? updatedOrder : order
+        );
+        return updatedFilteredPosts;
+      });
+    }
+    setEditMode(false);
   };
+  const handleEdit = (order) => {
+    if (order) {
+      setSelectedOrder(order);
+      setEditMode(true);
+    }
+  };
+  useEffect(() => {
+    const debouncedSearch = debounce(() => {
+      handleSearch();
+    }, 300);
+    debouncedSearch();
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [handleSearch]);
 
   return (
     <div className="container-fluid">
-      <h1>Buyurtmalar</h1>
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-danger">{error}</p>}
-      {!loading && !error && (
-        <table className="table table-striped">
-          <thead className="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Xaridor</th>
-              <th>Maskan nomi</th>
-              <th>Soni</th>
-              <th>Narxi</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td>{order.id}</td>
-                <td>{users[order.user_id] || "Loading..."}</td>{" "}
-                {/* Display user full name */}
-                <td>{tours[order.tour_id] || "Loading..."}</td>
-                <td>{order.quantity}</td>
-                <td>{order.total_price}</td>
-                <td className="d-flex justify-content-between">
-                  <button className="btn btn-danger" disabled>
-                    {order && order.status === "pending" ? (
-                      <span>Tasdiqlanmagan</span>
-                    ) : (
-                      <span>Tasdiqlangan</span>
-                    )}
-                  </button>
-                  <div>
-                    <button
-                      onClick={() => handleEdit(order)}
-                      className="btn btn-warning mx-3"
-                    >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(order.id)}
-                      className="btn btn-danger"
-                    >
-                      <i className="fas fa-trash-alt"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {editMode ? (
+        <p></p>
+      ) : (
+        <>
+          <h1>Buyurtmalar</h1>
+          {loading && <p>Loading...</p>}
+          {error && <p className="text-danger">{error}</p>}
+          {!loading && !error && (
+            <table className="table table-striped">
+              <thead className="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>
+                    {" "}
+                    <SearchItem
+                      searchTerm={searchTerm}
+                      setSearchTerm={setSearchTerm}
+                      handleSearch={handleSearch}
+                      placeholder="Xaridor"
+                      style={{ width: "50%" }}
+                    />
+                  </th>
+                  <th>Maskan nomi</th>
+                  <th>Soni</th>
+                  <th>Narxi</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentPosts.map((order) => (
+                  <tr key={order.id}>
+                    <td>{order.id}</td>
+                    <td>{users[order.user_id] || "Loading..."}</td>{" "}
+                    {/* Display user full name */}
+                    <td>{tours[order.tour_id] || "Loading..."}</td>
+                    <td>{order.quantity}</td>
+                    <td>{order.total_price}</td>
+                    <td className="d-flex justify-content-between">
+                      <button className="btn btn-danger" disabled>
+                        {order && order.status === "pending" ? (
+                          <span>Tasdiqlanmagan</span>
+                        ) : (
+                          <span>Tasdiqlangan</span>
+                        )}
+                      </button>
+                      <div>
+                        <button
+                          onClick={() => handleEdit(order)}
+                          className="btn btn-warning mx-3"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(order.id)}
+                          className="btn btn-danger"
+                        >
+                          <i className="fas fa-trash-alt"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <div className="gane-pagination mt-30 text-center">
+            <ul>
+              {[...Array(totalPages)].map((_, index) => (
+                <li
+                  key={index + 1}
+                  className={currentPage === index + 1 ? "active" : ""}
+                >
+                  <span onClick={() => paginate(index + 1)}>{index + 1}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
       )}
     </div>
   );
