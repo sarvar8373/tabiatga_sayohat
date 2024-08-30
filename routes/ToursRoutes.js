@@ -2,6 +2,7 @@ import express from "express";
 import { DB } from "../utils/db.js";
 import multer from "multer";
 import path from "path";
+import { addNotification } from "../controllers/notificationController.js";
 
 const router = express.Router();
 
@@ -25,7 +26,7 @@ router.post("/add_tour", upload.single("image"), (req, res) => {
     description,
     price,
     price_description,
-    user_id, // Ensure this is provided in the request
+    user_id,
     region_id,
     district_id,
     status,
@@ -33,7 +34,6 @@ router.post("/add_tour", upload.single("image"), (req, res) => {
   } = req.body;
   const image = req.file ? req.file.filename : "";
 
-  // Updated SQL query without the extra comma
   const sql = `INSERT INTO tours (title, description, image, price, price_description, user_id, region_id, district_id, status, tourism_service_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   const values = [
@@ -42,7 +42,7 @@ router.post("/add_tour", upload.single("image"), (req, res) => {
     image,
     price,
     price_description,
-    user_id, // Ensure user_id is included if required
+    user_id,
     region_id,
     district_id,
     status,
@@ -55,7 +55,27 @@ router.post("/add_tour", upload.single("image"), (req, res) => {
       return res.json({ Status: false, Error: "Query error" });
     }
 
-    return res.json({ Status: true });
+    // Insert notification into the database
+    const notificationSql =
+      "INSERT INTO notifications (message, type) VALUES (?, ?)";
+    const notificationMessage = `Yangi maskan qo'shildi: ${title}`;
+    const notificationType = "info"; // Adjust the type if necessary
+
+    DB.query(
+      notificationSql,
+      [notificationMessage, notificationType],
+      (notificationErr) => {
+        if (notificationErr) {
+          console.error("Error adding notification:", notificationErr);
+          return res.json({
+            Status: false,
+            Error: "Error adding notification",
+          });
+        }
+
+        return res.json({ Status: true });
+      }
+    );
   });
 });
 
@@ -68,7 +88,30 @@ router.delete("/tour/:id", (req, res) => {
     if (err) return res.json({ Status: false, Error: "Query error" });
 
     if (result.affectedRows > 0) {
-      return res.json({ Status: true, Message: "Tour deleted successfully" });
+      // Insert notification into the database
+      const notificationSql =
+        "INSERT INTO notifications (message, type) VALUES (?, ?)";
+      const notificationMessage = `Maskan o'chirildi ${tourId} deleted`;
+      const notificationType = "delete"; // Adjust the type if necessary
+
+      DB.query(
+        notificationSql,
+        [notificationMessage, notificationType],
+        (notificationErr) => {
+          if (notificationErr) {
+            console.error("Error adding notification:", notificationErr);
+            return res.json({
+              Status: false,
+              Error: "Error adding notification",
+            });
+          }
+
+          return res.json({
+            Status: true,
+            Message: "Tour deleted successfully",
+          });
+        }
+      );
     } else {
       return res.json({
         Status: false,
@@ -91,9 +134,8 @@ router.put("/tour/:id", upload.single("image"), (req, res) => {
     status,
     tourism_service_id,
   } = req.body;
-  const newImage = req.file ? req.file.filename : null; // Use `null` if no file is uploaded
+  const newImage = req.file ? req.file.filename : null;
 
-  // Start building the SQL query
   let sql = `
     UPDATE tours 
     SET title = ?, 
@@ -116,16 +158,12 @@ router.put("/tour/:id", upload.single("image"), (req, res) => {
     status,
   ];
 
-  // Add the image field to the SQL query and parameters if an image is provided
   if (newImage) {
     sql += ", image = ?";
     params.push(newImage);
   }
 
-  // Finish the SQL query with the WHERE clause
   sql += " WHERE id = ?";
-
-  // Add the tourID to the parameters
   params.push(tourID);
 
   DB.query(sql, params, (err, result) => {
@@ -135,13 +173,33 @@ router.put("/tour/:id", upload.single("image"), (req, res) => {
     }
 
     if (result.affectedRows > 0) {
-      // Fetch the updated tour data
       DB.query("SELECT * FROM tours WHERE id = ?", [tourID], (err, rows) => {
         if (err) {
           console.error("SQL Error:", err);
           return res.json({ Status: false, Error: "Query error" });
         }
-        return res.json({ Status: true, Result: rows[0] });
+
+        // Insert notification into the database
+        const notificationSql =
+          "INSERT INTO notifications (message, type) VALUES (?, ?)";
+        const notificationMessage = `Maskan yangilandi: ${rows[0].title}`;
+        const notificationType = "update"; // Adjust the type if necessary
+
+        DB.query(
+          notificationSql,
+          [notificationMessage, notificationType],
+          (notificationErr) => {
+            if (notificationErr) {
+              console.error("Error adding notification:", notificationErr);
+              return res.json({
+                Status: false,
+                Error: "Error adding notification",
+              });
+            }
+
+            return res.json({ Status: true, Result: rows[0] });
+          }
+        );
       });
     } else {
       return res.json({

@@ -108,12 +108,12 @@ export default function Navbar() {
                 <span className="font-weight-bold">Foydalanuvchidan xabar</span>
               </div>
             </a>
-            <a
+            <Link
               className="dropdown-item text-center small text-gray-500"
-              href="#"
+              to="./notification"
             >
               Barchasini ko'rish
-            </a>
+            </Link>
           </div>
         </li>
         <div className="topbar-divider d-none d-sm-block"></div>

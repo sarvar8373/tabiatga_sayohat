@@ -20,6 +20,7 @@ import OrganizationAdd from "./pages/organization/organizationAdd";
 import OrganizationList from "./pages/organization/organizationList";
 import { HelmetProvider, Helmet } from "react-helmet-async";
 import ProtectedRoute from "../../context/ProtectedRoute";
+import Notification from "./pages/notification/notification";
 
 export default function Dashboard() {
   return (
@@ -51,6 +52,15 @@ export default function Dashboard() {
                   <ProtectedRoute
                     requiredRole={["admin", "region", "district"]}
                     element={<OrganizationAdd />}
+                  />
+                }
+              />
+              <Route
+                path="/notification"
+                element={
+                  <ProtectedRoute
+                    requiredRole={["admin", "region", "district"]}
+                    element={<Notification />}
                   />
                 }
               />
