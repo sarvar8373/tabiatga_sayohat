@@ -15,7 +15,7 @@ export default function AdobeList() {
   const [regions, setRegions] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState(""); // For title search
-  const [searchTerm1, setSearchTerm1] = useState(""); // For category search
+  const [searchTerm1, setSearchTerm1] = useState(""); // For region search
   const [searchTerm2, setSearchTerm2] = useState(""); // For price search
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(10);
@@ -45,6 +45,7 @@ export default function AdobeList() {
         console.error(err);
       });
   }, []);
+
   useEffect(() => {
     getTourService()
       .then((response) => {
@@ -55,7 +56,7 @@ export default function AdobeList() {
         }
       })
       .catch((err) => {
-        setError("Error fetching regions.");
+        setError("Error fetching tour services.");
         console.error(err);
       });
   }, []);
@@ -115,6 +116,7 @@ export default function AdobeList() {
       setEditMode(true);
     }
   };
+
   const handleSearch = useCallback(() => {
     const titleSearchTerm = searchTerm.trim().toLowerCase();
     const regionSearchTerm = searchTerm1.trim().toLowerCase();
@@ -183,7 +185,6 @@ export default function AdobeList() {
       handleSearch();
     }, 300);
     debouncedSearch();
-    // Cleanup function to cancel debounce on component unmount
     return () => {
       debouncedSearch.cancel();
     };
@@ -226,7 +227,6 @@ export default function AdobeList() {
                   />
                 </th>
                 <th className="text-light">
-                  {" "}
                   <SearchItem
                     searchTerm={searchTerm2}
                     setSearchTerm={setSearchTerm2}
@@ -236,7 +236,7 @@ export default function AdobeList() {
                   />
                 </th>
                 <th className="text-light">Holati</th>
-                <th className="text-light">Rasmi</th>
+                <th className="text-light">Rasmlar</th>
               </tr>
             </thead>
             <tbody>
@@ -248,7 +248,7 @@ export default function AdobeList() {
                   <td>{c.price}</td>
                   <td>
                     <div>
-                      {c && (c.status === "0" || c.status === 0) ? (
+                      {c.status === "0" || c.status === 0 ? (
                         <button className="btn btn-danger" disabled>
                           Tasdiqlanmagan
                         </button>
@@ -259,12 +259,15 @@ export default function AdobeList() {
                       )}
                     </div>
                   </td>
-                  <td className="d-flex justify-content-between">
-                    <img
-                      src={`${BASE_URL}/uploads/${c.image}`}
-                      alt={c.title}
-                      width="100"
-                    />
+                  <td className="d-flex justify-content-between align-items-center">
+                    {c.images && c.images.split(",")[0] && (
+                      <img
+                        src={`${BASE_URL}/uploads/${c.images.split(",")[0]}`}
+                        alt={c.title}
+                        width="100"
+                        className="mx-2"
+                      />
+                    )}
                     <div>
                       <button
                         onClick={() => handleEdit(c)}

@@ -45,7 +45,8 @@
   position: absolute;
   transform: scale(0.7);
   transform-origin: top right;
-  right: 0.25rem;
+  right: 20px;
+  background: red;
   margin-top: -0.25rem;
 }
 

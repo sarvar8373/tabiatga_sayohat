@@ -188,9 +188,9 @@ export default function Orders() {
                 {currentPosts.map((order) => (
                   <tr key={order.id}>
                     <td>{order.id}</td>
-                    <td>{users[order.user_id] || "Loading..."}</td>{" "}
+                    <td>{users[order.user_id]}</td>{" "}
                     {/* Display user full name */}
-                    <td>{tours[order.tour_id] || "Loading..."}</td>
+                    <td>{tours[order.tour_id]}</td>
                     <td>{order.quantity}</td>
                     <td>{order.total_price}</td>
                     <td className="d-flex justify-content-between">

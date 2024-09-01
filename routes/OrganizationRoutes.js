@@ -26,7 +26,7 @@ router.post("/add_organization", (req, res) => {
     auto_fill_cf_by_contract_id,
     accept_discount_offers,
     user_id,
-    status, // Assuming you have this from authentication
+    status,
   } = req.body;
 
   if (!inn_pinfl || !org_name || !user_id) {
@@ -76,7 +76,28 @@ router.post("/add_organization", (req, res) => {
         console.error("Database error:", err);
         return res.status(500).json({ Status: false, Error: "Database error" });
       }
-      res.json({ Status: true, Result: { id: result.insertId, org_name } });
+
+      // Add notification
+      const notificationSql =
+        "INSERT INTO notifications (message, type) VALUES (?, ?)";
+      const notificationMessage = `Yangi tashkilot qo'shildi: ${org_name}`;
+      const notificationType = "info";
+
+      DB.query(
+        notificationSql,
+        [notificationMessage, notificationType],
+        (notificationErr) => {
+          if (notificationErr) {
+            console.error("Error adding notification:", notificationErr);
+            return res.json({
+              Status: false,
+              Error: "Error adding notification",
+            });
+          }
+
+          res.json({ Status: true, Result: { id: result.insertId, org_name } });
+        }
+      );
     }
   );
 });
@@ -99,10 +120,30 @@ router.delete("/organizations/:id", (req, res) => {
     if (err) return res.json({ Status: false, Error: "Query error" });
 
     if (result.affectedRows > 0) {
-      return res.json({
-        Status: true,
-        Message: "Organization deleted successfully",
-      });
+      // Add notification
+      const notificationSql =
+        "INSERT INTO notifications (message, type) VALUES (?, ?)";
+      const notificationMessage = `Tashkilot o'chirildi: ${organizationId}`;
+      const notificationType = "delete";
+
+      DB.query(
+        notificationSql,
+        [notificationMessage, notificationType],
+        (notificationErr) => {
+          if (notificationErr) {
+            console.error("Error adding notification:", notificationErr);
+            return res.json({
+              Status: false,
+              Error: "Error adding notification",
+            });
+          }
+
+          return res.json({
+            Status: true,
+            Message: "Organization deleted successfully",
+          });
+        }
+      );
     } else {
       return res.json({
         Status: false,
@@ -201,7 +242,6 @@ router.put("/organizations/:id", (req, res) => {
     }
 
     if (result.affectedRows > 0) {
-      // Fetch the updated organization data
       DB.query(
         "SELECT * FROM organization_details WHERE id = ?",
         [organizationId],
@@ -210,7 +250,28 @@ router.put("/organizations/:id", (req, res) => {
             console.error("SQL Error:", err);
             return res.json({ Status: false, Error: "Query error" });
           }
-          return res.json({ Status: true, Result: rows[0] });
+
+          // Add notification
+          const notificationSql =
+            "INSERT INTO notifications (message, type) VALUES (?, ?)";
+          const notificationMessage = `Tashkilot yangilandi: ${rows[0].org_name}`;
+          const notificationType = "update";
+
+          DB.query(
+            notificationSql,
+            [notificationMessage, notificationType],
+            (notificationErr) => {
+              if (notificationErr) {
+                console.error("Error adding notification:", notificationErr);
+                return res.json({
+                  Status: false,
+                  Error: "Error adding notification",
+                });
+              }
+
+              return res.json({ Status: true, Result: rows[0] });
+            }
+          );
         }
       );
     } else {

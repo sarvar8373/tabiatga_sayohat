@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Card from "../../../components/cards/cards";
-import { Chart as Chartjs } from "chart.js/auto";
 import { Bar, Doughnut } from "react-chartjs-2";
 import { getStatistics } from "../../../http/usersApi";
 
@@ -13,7 +12,6 @@ export default function Home() {
           setStaticts(result.data.Result);
         } else {
           alert(result.data.Error);
-          console.log(Chartjs);
         }
       })
       .catch((err) => console.log(err));
@@ -45,10 +43,10 @@ export default function Home() {
         />
         <Card
           title="Yuborilgan so'rovlar"
-          value="18"
           iconClass="fa-comments"
           cardClass="border-left-warning"
           textClass="text-warning"
+          value={staticts.notificationCount}
         />
       </div>
       <div className="row">

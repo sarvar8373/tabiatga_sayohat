@@ -49,28 +49,32 @@ export default function Adventure() {
           </div>
         </div>
         <div className="row">
-          {posts.map((post) => (
-            <div key={post.id} className="col-lg-3 col-sm-6">
-              <div className="single-adventure">
-                <img
-                  src={`${BASE_URL}/uploads/${post.image}`}
-                  alt={post.title}
-                />
-                <div className="adventure-content">
-                  <Link to={`/posts/${post.id}`}>
-                    <h5>{post.title}</h5>
-                  </Link>
-                  <div>
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: truncateText(post.text, 7),
-                      }}
+          {posts
+            .filter((post) => post.status !== 0)
+            .map((post) => (
+              <div key={post.id} className="col-lg-3 col-sm-6">
+                <div className="single-adventure">
+                  {post.images && post.images.split(",")[0] && (
+                    <img
+                      src={`${BASE_URL}/uploads/${post.images.split(",")[0]}`}
+                      alt={post.title}
                     />
+                  )}
+                  <div className="adventure-content">
+                    <Link to={`/posts/${post.id}`}>
+                      <h5>{post.title}</h5>
+                    </Link>
+                    <div>
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: truncateText(post.text, 7),
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </div>

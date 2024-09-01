@@ -1,21 +1,58 @@
 import React, { useEffect, useState } from "react";
 import { getNotification } from "../../../../http/notificationApi";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function Notification() {
-  const [notification, setnotification] = useState([]);
-  const handleDelete = (id) => {};
-  const handleEdit = (id) => {};
+  const [notification, setNotification] = useState([]);
+
+  const handleDelete = (id) => {
+    // Implement delete logic
+  };
+
+  const handleEdit = (id) => {
+    // Implement edit logic
+  };
+
   useEffect(() => {
     getNotification()
       .then((notificationResult) => {
         if (notificationResult.data.Status) {
-          setnotification(notificationResult.data.Result);
+          setNotification(notificationResult.data.Result);
         } else {
           alert(notificationResult.data.Error);
         }
       })
       .catch((err) => console.log(err));
   }, []);
+
+  const getBackgroundColor = (type) => {
+    switch (type) {
+      case "1":
+        return "table-success";
+      default:
+        return "table-danger";
+    }
+  };
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return ` ${hours}:${minutes}/${day}.${month}.${year}`;
+  };
+  const getTypeLabel = (type) => {
+    switch (type) {
+      case "0":
+        return "Tasdiqlanmagan"; // Unconfirmed
+      case "1":
+        return "Tasdiqlangan"; // Confirmed
+      default:
+        return "";
+    }
+  };
   return (
     <div className="container-fluid">
       <h1>Bildirishnomalar</h1>
@@ -24,31 +61,17 @@ export default function Notification() {
           <tr>
             <th>ID</th>
             <th>Xabar</th>
-            <th>Turi</th>
+            <th>Holati</th>
+            <th>Sanasi</th>
           </tr>
         </thead>
         <tbody>
-          {notification.map((order) => (
-            <tr key={order.id}>
-              <td>{order.id}</td>
-              <td>{order.message}</td>
-              <td className="d-flex justify-content-between">
-                {order.type}{" "}
-                <div>
-                  <button
-                    onClick={() => handleEdit(order)}
-                    className="btn btn-warning mx-3"
-                  >
-                    <i className="fas fa-edit"></i>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(order.id)}
-                    className="btn btn-danger"
-                  >
-                    <i className="fas fa-trash-alt"></i>
-                  </button>
-                </div>
-              </td>
+          {notification.map((item, index) => (
+            <tr key={item.id} className={getBackgroundColor(item.type)}>
+              <td>{index + 1}</td>
+              <td>{item.message}</td>
+              <td> {getTypeLabel(item.type)}</td>
+              <td>{formatDate(item.created_at)}</td>
             </tr>
           ))}
         </tbody>

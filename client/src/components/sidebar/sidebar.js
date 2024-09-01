@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BASE_URL } from "../../api/host/host";
 import { getPosts } from "../../http/postsApi";
+import { getTourService } from "../../http/tourServices";
 
 export default function Sidebar() {
   const [posts, setPosts] = useState([]);
-
+  const [tourServices, setTourServices] = useState([]);
+  const [error, setError] = useState("");
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -26,6 +28,21 @@ export default function Sidebar() {
 
     fetchPosts();
   }, []);
+  useEffect(() => {
+    getTourService()
+      .then((response) => {
+        if (response.data.Status) {
+          setTourServices(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Xatolik yuz berdi faoliyat turida.");
+        console.error(err);
+      });
+  }, []);
+
   return (
     <div className="advanture-sidebar">
       <form className="blog-shearch-form" action="/">
@@ -38,25 +55,16 @@ export default function Sidebar() {
         <h4>
           Kategoriyani <span>Tanlang</span>
         </h4>
-        <ul className="widget-catagories">
-          <li>
-            <input type="checkbox" /> Kemping <span>(110)</span>
-          </li>
-          <li>
-            <input type="checkbox" /> Piyoda yurish <span>(52)</span>
-          </li>
-          <li>
-            <input type="checkbox" /> Safarilar <span>(54)</span>
-          </li>
-          <li>
-            <input type="checkbox" /> Velikda yurish <span>(22)</span>
-          </li>
-          <li>
-            <input type="checkbox" /> Plyaj sayohatlari <span>(11)</span>
-          </li>
-          <li>
-            <input type="checkbox" /> Serfinglar <span>(32)</span>
-          </li>
+        <ul
+          className="widget-catagories"
+          style={{ width: "100%", height: "300px", overflow: "auto" }}
+        >
+          {tourServices.map((c, index) => (
+            <li key={c.id}>
+              <input type="checkbox" />
+              {c.name} <span>(110)</span>
+            </li>
+          ))}
         </ul>
       </div>
       <div className="sigle-adv-sidebar">
@@ -66,16 +74,18 @@ export default function Sidebar() {
         {posts.map((post) => (
           <div key={post.id} className="single-popular-post-wrap">
             <div className="popular-post-thumb" style={{ width: "80px" }}>
-              <img
-                src={`${BASE_URL}/uploads/${post.image}`}
-                alt={post.title}
-                style={{ width: "80px", height: "80px" }}
-              />
+              {post.images && post.images.split(",")[0] && (
+                <img
+                  src={`${BASE_URL}/uploads/${post.images.split(",")[0]}`}
+                  alt={post.title}
+                  style={{ width: "80px", height: "80px", objectFit: "cover" }}
+                />
+              )}
             </div>
             <div className="popular-post-content">
               <p>{post.date}</p>
               <Link to={`/posts/${post.id}`}>
-                <h6>{post.title}</h6>
+                <h6 className="sidebar-post">{post.title}</h6>
               </Link>
             </div>
           </div>

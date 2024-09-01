@@ -21,7 +21,7 @@ const Adobe = () => {
     status: "0",
     tourism_service_id: "", // Use string to match select values
   });
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]); // Change to handle multiple images
   const { userDetails } = useAuth();
 
   useEffect(() => {
@@ -83,7 +83,7 @@ const Adobe = () => {
   };
 
   const handleFileChange = (e) => {
-    setImage(e.target.files[0]);
+    setImages([...e.target.files]); // Use spread operator to handle multiple files
   };
 
   const handleSubmit = (e) => {
@@ -92,7 +92,7 @@ const Adobe = () => {
     const data = new FormData();
     data.append("title", formData.title);
     data.append("description", formData.description);
-    if (image) data.append("image", image);
+    images.forEach((file) => data.append("images", file)); // Append all images
     data.append("price", formData.price);
     data.append("price_description", formData.price_description);
     data.append("tour_type", formData.tour_type);
@@ -119,7 +119,7 @@ const Adobe = () => {
           });
           setSelectedRegion("");
           setSelectedDistrict("");
-          setImage(null);
+          setImages([]); // Reset images
         } else {
           setError(response.data.Error || "Error adding tour.");
         }
@@ -136,6 +136,7 @@ const Adobe = () => {
       {error && <div className="alert alert-danger">{error}</div>}
       <div className="login-form">
         <form className="gane-form" onSubmit={handleSubmit}>
+          {/* Form fields remain unchanged */}
           <div className="single-field">
             <label htmlFor="title">Sarlavha</label>
             <input
@@ -248,8 +249,9 @@ const Adobe = () => {
             <input
               className="lh-0"
               type="file"
-              name="image"
+              name="images"
               onChange={handleFileChange}
+              multiple // Allow multiple file uploads
             />
           </div>
           <button className="btn btn-success px-3" type="submit">

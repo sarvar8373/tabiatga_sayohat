@@ -21,7 +21,23 @@ export const addTourService = (req, res) => {
     });
   });
 };
+export const getTourServiceById = (req, res) => {
+  const serviceId = req.params.id;
 
+  const sql = "SELECT * FROM tourism_services WHERE id = ?";
+  DB.query(sql, [serviceId], (err, result) => {
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ Status: false, Error: "Query error" });
+    }
+
+    if (result.length > 0) {
+      return res.json({ Status: true, Result: result[0] });
+    } else {
+      return res.json({ Status: false, Error: "Service not found" });
+    }
+  });
+};
 export const getTourServices = (req, res) => {
   const sql = "SELECT * FROM tourism_services";
   DB.query(sql, (err, result) => {

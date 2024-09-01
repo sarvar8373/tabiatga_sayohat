@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../components/header/header";
 import Footer from "../../components/footer/footer";
-import AdventureModal from "./modal"; // Updated import
 import { BASE_URL } from "../../api/host/host";
 import axios from "axios";
 import Sidebar from "../../components/sidebar/sidebar";
 import { Link } from "react-router-dom";
 import { HelmetProvider, Helmet } from "react-helmet-async";
-import { Button } from "react-bootstrap";
+import styles from "../../style/App.module.css";
 
 export default function Adventure() {
   const [adventures, setAdventures] = useState([]);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [adventurePerPage] = useState(4);
-  const [selectedAdventure, setSelectedAdventure] = useState(null);
-  const [showModal, setShowModal] = useState(false); // State for modal visibility
+  const [tours, setTours] = useState({});
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -23,8 +21,21 @@ export default function Adventure() {
         const response = await axios.get(`${BASE_URL}/tours/`);
         if (response.data.Status) {
           setAdventures(response.data.Result);
+          const tourPromises = response.data.Result.map((adventure) =>
+            axios.get(
+              `${BASE_URL}/services/tour_services/${adventure.tourism_service_id}`
+            )
+          );
+          const tourResponses = await Promise.all(tourPromises);
+          const tourMap = {};
+          tourResponses.forEach((res) => {
+            if (res.data.Status) {
+              tourMap[res.data.Result.id] = res.data.Result.name;
+            }
+          });
+          setTours(tourMap);
         } else {
-          setError("Tours not found");
+          setError("Sayohat Maskanlari topilmadi");
         }
       } catch (err) {
         setError("Error fetching post data");
@@ -90,97 +101,99 @@ export default function Adventure() {
             <div className="col-lg-9">
               <div className="row">
                 <div className="col-lg-8">
-                  <div className="show-result-text">
-                    <p>
-                      “Sarguzashtlar” uchun 27 dan ortiq natijadan 1-9 tasi
-                      koʻrsatilmoqda
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-4">
+                  {" "}
                   <div className="adventure-select">
                     <form action="#" className="adventure-select-form style-2">
-                      {/* <select
+                      <select
                         className="form-select"
                         aria-label="Default select example"
-                        defaultValue="1" // This sets the initial selected value
+                        // This sets the initial selected value
                       >
-                        <option value="" disabled>
-                          Narxi
-                        </option>
-                        <option value="1">Qimmat</option>
-                        <option value="2">Arzon</option>
-                      </select> */}
-                      <div className="view-grid">
-                        <ul>
-                          <li className="active">
-                            <a href="/">
-                              <i className="fal fa-list-ul"></i>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
+                        <option value="">Narxi filtrlash</option>
+                        <option value="1">Yuqori narx</option>
+                        <option value="2">Arzon narx</option>
+                      </select>
                     </form>
                   </div>
                 </div>
-              </div>
-              {currentAdventures.map((adventure) => (
-                <div className="single-adventure style-2" key={adventure.id}>
-                  <div
-                    className="advanture-thumb"
-                    style={{ width: "370px", height: "275px" }}
-                  >
-                    <img
-                      src={`${BASE_URL}/uploads/${adventure.image}`}
-                      alt="adventure"
-                      style={{ width: "370px", height: "275px" }}
-                    />
-                    <div className="adv-thumb-item">
-                      <ul>
-                        <li>
-                          <img src="img/icon/t1.png" alt="" />
-                        </li>
-                        <li>
-                          <img src="img/icon/t2.png" alt="" />
-                        </li>
-                        <li>
-                          <img src="img/icon/t3.png" alt="" />
-                        </li>
-                        <li>
-                          <img src="img/icon/t4.png" alt="" />
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="adventure-content">
-                    <p className="tour">{adventure.tour}</p>
-                    <Link to={`/detail/${adventure.id}`}>
-                      <h6>{adventure.title}</h6>
-                    </Link>
-                    <ul className="review">
-                      <li>
-                        <i className="fas fa-star"></i>
-                        <i className="fas fa-star"></i>
-                        <i className="fas fa-star"></i>
+                <div className="col-lg-4">
+                  <div className="view-grid">
+                    <ul>
+                      <li className="active">
+                        <a href="/">
+                          <i className="fal fa-list-ul"></i>
+                        </a>
                       </li>
                     </ul>
-                    <p>{truncateDescription(adventure.description, 30)}</p>
-                    <p className="price">
-                      {adventure.price}{" "}
-                      <small>{adventure.priceDescription}</small>
-                    </p>
-
-                    <button type="button" className="btn btn-theme px-3 py-2">
-                      <Link
-                        className="text-white"
-                        to={`/detail/${adventure.id}`}
-                      >
-                        Ko'proq ma'lumot
-                      </Link>
-                    </button>
                   </div>
                 </div>
-              ))}
+              </div>
+              {currentAdventures
+                .filter((adventure) => adventure.status !== 0)
+                .map((adventure) => (
+                  <div className="single-adventure style-2" key={adventure.id}>
+                    <div
+                      className="advanture-thumb"
+                      style={{ width: "370px", height: "auto" }}
+                    >
+                      {adventure.images && adventure.images.split(",")[0] && (
+                        <img
+                          src={`${BASE_URL}/uploads/${
+                            adventure.images.split(",")[0]
+                          }`}
+                          alt={adventure.title}
+                          style={{ width: "370px", height: "100%" }}
+                        />
+                      )}
+
+                      <div className="adv-thumb-item">
+                        <ul>
+                          <li>
+                            <img src="img/icon/t1.png" alt="" />
+                          </li>
+                          <li>
+                            <img src="img/icon/t2.png" alt="" />
+                          </li>
+                          <li>
+                            <img src="img/icon/t3.png" alt="" />
+                          </li>
+                          <li>
+                            <img src="img/icon/t4.png" alt="" />
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="adventure-content">
+                      <p className="tour">
+                        {tours[adventure.tourism_service_id]}
+                      </p>
+                      <p className="tour">{adventure.tour}</p>
+                      <Link to={`/detail/${adventure.id}`}>
+                        <h6 className={styles.font}>{adventure.title}</h6>
+                      </Link>
+                      <ul className="review">
+                        <li>
+                          <i className="fas fa-star"></i>
+                          <i className="fas fa-star"></i>
+                          <i className="fas fa-star"></i>
+                          <i className="fas fa-star"></i>
+                          <i className="fas fa-star"></i>
+                        </li>
+                      </ul>
+                      <p>{truncateDescription(adventure.description, 30)}</p>
+                      <p className="price float-start">
+                        {adventure.price}{" "}
+                        <small>{adventure.priceDescription}</small>
+                      </p>
+                      <Link
+                        className="btn float-end btn-theme px-5 py-2 text-white"
+                        to={`/detail/${adventure.id}`}
+                      >
+                        Batafsil
+                      </Link>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
           <div className="row justify-content-center">
@@ -211,13 +224,6 @@ export default function Adventure() {
         </div>
       </div>
       <Footer />
-      {selectedAdventure && (
-        <AdventureModal
-          adventure={selectedAdventure}
-          showModal={showModal}
-          handleClose={() => setShowModal(false)}
-        />
-      )}
     </div>
   );
 }

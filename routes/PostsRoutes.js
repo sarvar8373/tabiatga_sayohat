@@ -17,16 +17,19 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-router.post("/add_posts", upload.single("image"), (req, res) => {
-  console.log(req.body);
-  console.log(req.file); // Check the uploaded file
+router.post("/add_posts", upload.array("images"), (req, res) => {
+  // Check the uploaded files
 
-  const sql = `INSERT INTO posts (title, text, image, category_id, author_id) VALUES (?, ?, ?, ?, ?)`;
+  const images = req.files
+    ? req.files.map((file) => file.filename).join(",") // Join filenames if there are multiple files
+    : "";
+
+  const sql = `INSERT INTO posts (title, text, images, category_id, author_id) VALUES (?, ?, ?, ?, ?)`;
 
   const values = [
     req.body.title,
     req.body.text,
-    req.file ? req.file.filename : null, // Handle image file
+    images, // Updated to handle multiple files
     req.body.category_id,
     req.body.author_id,
   ];
@@ -40,6 +43,7 @@ router.post("/add_posts", upload.single("image"), (req, res) => {
     return res.json({ Status: true, Message: "Post created successfully" });
   });
 });
+
 router.delete("/post/:id", (req, res) => {
   const categoryId = req.params.id;
   const sql = "DELETE FROM posts WHERE id = ?";
@@ -60,7 +64,7 @@ router.delete("/post/:id", (req, res) => {
     }
   });
 });
-router.put("/post/:id", upload.single("image"), (req, res) => {
+router.put("/post/:id", upload.array("images"), (req, res) => {
   const postID = req.params.id;
   const newPostTitle = req.body.title;
   const newPostText = req.body.text;
@@ -79,10 +83,14 @@ router.put("/post/:id", upload.single("image"), (req, res) => {
     sql += "text = ?, ";
     values.push(newPostText);
   }
-  if (req.file) {
-    sql += "image = ?, ";
-    values.push(req.file.filename);
+
+  // Handling multiple images
+  if (req.files && req.files.length > 0) {
+    sql += "images = ?, "; // Set to new images
+    const imageFilenames = req.files.map((file) => file.filename).join(",");
+    values.push(imageFilenames);
   }
+
   if (newPostCategoryID) {
     sql += "category_id = ?, ";
     values.push(newPostCategoryID);
@@ -111,6 +119,7 @@ router.put("/post/:id", upload.single("image"), (req, res) => {
     }
   });
 });
+
 router.get("/post/:id", (req, res) => {
   const postId = req.params.id;
   const sql = "SELECT * FROM posts WHERE id = ?";

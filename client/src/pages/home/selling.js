@@ -44,36 +44,46 @@ export default function Selling() {
                   biron bir narsani ko'rsangiz, bron qiling! Biz ham siz kabi
                   katta va go'zal dunyomizni kashf qilishdan xursandmiz.
                 </p>
-                <a href="/posts" className="btn btn-theme mt-30">
-                  Batafsil
+                <a href="/adventure" className="btn btn-theme mt-30">
+                  Barchasini ko'rish
                 </a>
               </div>
             </div>
           </div>
-          {adventures.map((adventure) => (
-            <div className="col-lg-3 col-sm-6" key={adventure.id}>
-              <div className="single-adventure">
-                <img
-                  src={`${BASE_URL}/uploads/${adventure.image}`}
-                  alt="adventure"
-                />
-                <div className="adventure-content">
-                  <p className="tour">{adventure.tour}</p>
-                  <Link to={`/detail/${adventure.id}`}>
-                    <h6>{adventure.title}</h6>
-                  </Link>
-                  <p className="price">{adventure.price}</p>
-                  <p>{adventure.price_description}</p>
-                  <button type="button" className="btn btn-theme px-3 py-2">
-                    <Link className="text-white" to={`/detail/${adventure.id}`}>
-                      Ko'proq ma'lumot
+          {adventures
+            .filter((adventure) => adventure.status !== 0)
+            .map((adventure) => (
+              <div className="col-lg-3 col-sm-6" key={adventure.id}>
+                <div className="single-adventure">
+                  {adventure.images && adventure.images.split(",")[0] && (
+                    <img
+                      src={`${BASE_URL}/uploads/${
+                        adventure.images.split(",")[0]
+                      }`}
+                      alt={adventure.title}
+                      width="100"
+                    />
+                  )}
+                  <div className="adventure-content">
+                    <p className="tour">{adventure.tour}</p>
+                    <Link to={`/detail/${adventure.id}`}>
+                      <h6>{adventure.title}</h6>
                     </Link>
-                  </button>
-                  <Modal />
+                    <p className="price">{adventure.price}</p>
+                    <p>{adventure.price_description}</p>
+                    <button type="button" className="btn btn-theme px-5 py-2">
+                      <Link
+                        className="text-white"
+                        to={`/detail/${adventure.id}`}
+                      >
+                        Batafsil
+                      </Link>
+                    </button>
+                    <Modal />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </div>

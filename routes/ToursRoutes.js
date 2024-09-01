@@ -2,7 +2,6 @@ import express from "express";
 import { DB } from "../utils/db.js";
 import multer from "multer";
 import path from "path";
-import { addNotification } from "../controllers/notificationController.js";
 
 const router = express.Router();
 
@@ -20,7 +19,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-router.post("/add_tour", upload.single("image"), (req, res) => {
+router.post("/add_tour", upload.array("images"), (req, res) => {
   const {
     title,
     description,
@@ -32,14 +31,16 @@ router.post("/add_tour", upload.single("image"), (req, res) => {
     status,
     tourism_service_id,
   } = req.body;
-  const image = req.file ? req.file.filename : "";
+  const images = req.files
+    ? req.files.map((file) => file.filename).join(",")
+    : "";
 
-  const sql = `INSERT INTO tours (title, description, image, price, price_description, user_id, region_id, district_id, status, tourism_service_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO tours (title, description, images, price, price_description, user_id, region_id, district_id, status, tourism_service_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   const values = [
     title,
     description,
-    image,
+    images,
     price,
     price_description,
     user_id,
@@ -55,45 +56,54 @@ router.post("/add_tour", upload.single("image"), (req, res) => {
       return res.json({ Status: false, Error: "Query error" });
     }
 
-    // Insert notification into the database
-    const notificationSql =
-      "INSERT INTO notifications (message, type) VALUES (?, ?)";
-    const notificationMessage = `Yangi maskan qo'shildi: ${title}`;
-    const notificationType = "info"; // Adjust the type if necessary
+    if (status) {
+      const notificationSql =
+        "INSERT INTO notifications (message, type) VALUES (?, ?)";
+      const notificationMessage = `${title}`;
+      const notificationType = status;
 
-    DB.query(
-      notificationSql,
-      [notificationMessage, notificationType],
-      (notificationErr) => {
-        if (notificationErr) {
-          console.error("Error adding notification:", notificationErr);
-          return res.json({
-            Status: false,
-            Error: "Error adding notification",
-          });
+      DB.query(
+        notificationSql,
+        [notificationMessage, notificationType],
+        (notificationErr) => {
+          if (notificationErr) {
+            console.error("Error adding notification:", notificationErr);
+            return res.json({
+              Status: false,
+              Error: "Error adding notification",
+            });
+          }
+
+          return res.json({ Status: true });
         }
-
-        return res.json({ Status: true });
-      }
-    );
+      );
+    } else {
+      return res.json({ Status: true });
+    }
   });
 });
 
 // Route to delete a tour by ID
 router.delete("/tour/:id", (req, res) => {
   const tourId = req.params.id;
+
+  // SQL query to delete the tour
   const sql = "DELETE FROM tours WHERE id = ?";
 
   DB.query(sql, [tourId], (err, result) => {
-    if (err) return res.json({ Status: false, Error: "Query error" });
+    if (err) {
+      console.error("Error deleting tour:", err);
+      return res.json({ Status: false, Error: "Query error" });
+    }
 
     if (result.affectedRows > 0) {
-      // Insert notification into the database
+      // Define the notification message and type
       const notificationSql =
         "INSERT INTO notifications (message, type) VALUES (?, ?)";
-      const notificationMessage = `Maskan o'chirildi ${tourId} deleted`;
-      const notificationType = "delete"; // Adjust the type if necessary
+      const notificationMessage = `Maskan o'chirildi ${tourId}`;
+      const notificationType = "delete"; // Set appropriate notification type here
 
+      // Insert notification
       DB.query(
         notificationSql,
         [notificationMessage, notificationType],
@@ -122,7 +132,7 @@ router.delete("/tour/:id", (req, res) => {
 });
 
 // Route to update a tour by ID
-router.put("/tour/:id", upload.single("image"), (req, res) => {
+router.put("/tour/:id", upload.array("images"), (req, res) => {
   const tourID = req.params.id;
   const {
     title,
@@ -134,7 +144,9 @@ router.put("/tour/:id", upload.single("image"), (req, res) => {
     status,
     tourism_service_id,
   } = req.body;
-  const newImage = req.file ? req.file.filename : null;
+  const newImages = req.files
+    ? req.files.map((file) => file.filename).join(",")
+    : null;
 
   let sql = `
     UPDATE tours 
@@ -158,9 +170,9 @@ router.put("/tour/:id", upload.single("image"), (req, res) => {
     status,
   ];
 
-  if (newImage) {
-    sql += ", image = ?";
-    params.push(newImage);
+  if (newImages) {
+    sql += ", images = ?";
+    params.push(newImages);
   }
 
   sql += " WHERE id = ?";
@@ -179,27 +191,30 @@ router.put("/tour/:id", upload.single("image"), (req, res) => {
           return res.json({ Status: false, Error: "Query error" });
         }
 
-        // Insert notification into the database
-        const notificationSql =
-          "INSERT INTO notifications (message, type) VALUES (?, ?)";
-        const notificationMessage = `Maskan yangilandi: ${rows[0].title}`;
-        const notificationType = "update"; // Adjust the type if necessary
+        if (status !== rows[0].status) {
+          const notificationSql =
+            "INSERT INTO notifications (message, type) VALUES (?, ?)";
+          const notificationMessage = title;
+          const notificationType = `${rows[0].status}`;
 
-        DB.query(
-          notificationSql,
-          [notificationMessage, notificationType],
-          (notificationErr) => {
-            if (notificationErr) {
-              console.error("Error adding notification:", notificationErr);
-              return res.json({
-                Status: false,
-                Error: "Error adding notification",
-              });
+          DB.query(
+            notificationSql,
+            [notificationMessage, notificationType],
+            (notificationErr) => {
+              if (notificationErr) {
+                console.error("Error adding notification:", notificationErr);
+                return res.json({
+                  Status: false,
+                  Error: "Error adding notification",
+                });
+              }
+
+              return res.json({ Status: true, Result: rows[0] });
             }
-
-            return res.json({ Status: true, Result: rows[0] });
-          }
-        );
+          );
+        } else {
+          return res.json({ Status: true, Result: rows[0] });
+        }
       });
     } else {
       return res.json({

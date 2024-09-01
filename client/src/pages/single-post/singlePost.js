@@ -6,6 +6,7 @@ import Footer from "../../components/footer/footer";
 import Sidebar from "../../components/sidebar/sidebar";
 import { BASE_URL } from "../../api/host/host";
 import { HelmetProvider, Helmet } from "react-helmet-async";
+import CustomCarousel from "../../components/carousel/carousel";
 
 export default function SinglePost() {
   const { id } = useParams(); // Get the post ID from the URL
@@ -102,19 +103,17 @@ export default function SinglePost() {
               <div className="single-blog-post-wrap blog-details">
                 <div className="single-blog-post">
                   <div className="post-thumbnail">
-                    <img
-                      src={`${BASE_URL}/uploads/${post.image}`}
-                      alt={post.title}
-                      style={{
-                        width: "100%",
-                        height: "400px",
-                        objectFit: "cover",
-                      }}
+                    <CustomCarousel
+                      images={post.images}
+                      width="100%"
+                      height="400px"
+                      cover="cover"
                     />
-                    <div className="post-date">
+
+                    {/* <div className="post-date">
                       <h4>21</h4>
                       <h3>Oktabr</h3>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="single-post-coontent-top">
                     <div className="post-meta">

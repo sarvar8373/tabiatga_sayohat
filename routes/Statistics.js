@@ -8,13 +8,14 @@ router.get("/", async (req, res) => {
     const usersCount = await getCount("users");
     const toursCount = await getCount("tours");
     const organizationCount = await getCount("organization_details");
-
+    const notificationCount = await getCount("notifications");
     return res.json({
       Status: true,
       Result: {
         users: usersCount,
         tours: toursCount,
         organization_details: organizationCount,
+        notificationCount: notificationCount,
       },
     });
   } catch (error) {
@@ -26,7 +27,12 @@ router.get("/", async (req, res) => {
 async function getCount(tableName) {
   return new Promise((resolve, reject) => {
     // Ensure tableName is a valid identifier
-    const validTables = ["users", "tours", "organization_details"];
+    const validTables = [
+      "users",
+      "tours",
+      "organization_details",
+      "notifications",
+    ];
     if (!validTables.includes(tableName)) {
       return reject(new Error("Invalid table name"));
     }

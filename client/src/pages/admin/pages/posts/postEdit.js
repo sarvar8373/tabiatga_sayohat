@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactQuill from "react-quill";
 import { putPost } from "../../../../http/postsApi";
+import { BASE_URL } from "../../../../api/host/host";
 
 export default function PostEdit({
   post,
@@ -10,14 +11,22 @@ export default function PostEdit({
   onCancel,
 }) {
   const [editPost, setEditPost] = useState(post);
+  const [imagePreviews, setImagePreviews] = useState([]);
 
   useEffect(() => {
     if (post) {
       setEditPost(post);
+      if (post.images) {
+        const imageArray = Array.isArray(post.images)
+          ? post.images
+          : post.images.split(",");
+        setImagePreviews(imageArray.map((img) => `${BASE_URL}/uploads/${img}`));
+      } else {
+        setImagePreviews([]);
+      }
     }
   }, [post]);
 
-  // Example handleUpdate with null checks
   const handleUpdate = () => {
     if (!editPost || !editPost.id) {
       alert("Post data is missing or incorrect.");
@@ -30,8 +39,16 @@ export default function PostEdit({
     formData.append("category_id", editPost.category_id);
     formData.append("author_id", editPost.author_id);
 
-    if (editPost.image instanceof File) {
-      formData.append("image", editPost.image);
+    if (editPost.images instanceof FileList) {
+      Array.from(editPost.images).forEach((file) => {
+        formData.append("images", file);
+      });
+    } else if (Array.isArray(editPost.images)) {
+      editPost.images.forEach((file, index) => {
+        if (file instanceof File) {
+          formData.append("images", file);
+        }
+      });
     }
 
     putPost(editPost.id, formData)
@@ -43,6 +60,21 @@ export default function PostEdit({
         }
       })
       .catch((err) => console.log(err));
+  };
+
+  const handleImageChange = (e) => {
+    const files = e.target.files; // FileList object
+    if (files.length > 0) {
+      const newImages = Array.from(files).map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      }));
+      setEditPost({
+        ...editPost,
+        images: files,
+      });
+      setImagePreviews(newImages.map((img) => img.preview));
+    }
   };
 
   return (
@@ -116,12 +148,24 @@ export default function PostEdit({
           </label>
           <input
             type="file"
-            id="imageFile"
+            id="images"
             className="form-control"
-            onChange={(e) =>
-              setEditPost({ ...editPost, image: e.target.files[0] })
-            }
+            multiple
+            onChange={handleImageChange}
           />
+          {imagePreviews.length > 0 && (
+            <div className="image-previews mt-3">
+              {imagePreviews.map((preview, index) => (
+                <img
+                  key={index}
+                  src={preview}
+                  alt={`Preview ${index}`}
+                  width="100"
+                  className="mx-2"
+                />
+              ))}
+            </div>
+          )}
         </div>
         <button
           type="button"

@@ -6,7 +6,7 @@ import { getUsers } from "../../../../http/usersApi";
 export default function AddPosts() {
   const [category, setCategory] = useState([]);
   const [users, setUsers] = useState([]);
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("");
   const [editorValue, setEditorValue] = useState("");
@@ -40,7 +40,7 @@ export default function AddPosts() {
   }, []);
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    setImages([...e.target.files]);
   };
 
   const handleSubmit = async (e) => {
@@ -51,9 +51,11 @@ export default function AddPosts() {
     formData.append("text", editorValue);
     formData.append("category_id", posts.category_id);
     formData.append("author_id", posts.author_id);
-    if (image) {
-      formData.append("image", image);
-    }
+
+    // Append each file individually
+    images.forEach((file) => {
+      formData.append("images", file);
+    });
 
     try {
       const result = await postPosts(formData);
@@ -68,7 +70,7 @@ export default function AddPosts() {
           author_id: "",
         });
         setEditorValue("");
-        setImage(null);
+        setImages([]);
       } else {
         setStatus("danger");
         setMessage(result.data.Error);
@@ -128,9 +130,10 @@ export default function AddPosts() {
               <input
                 className="form-control"
                 type="file"
+                name="images"
                 id="formFile"
-                name="image"
                 onChange={handleImageChange}
+                multiple // Allow multiple file uploads
               />
             </div>
             <div className="single-field">

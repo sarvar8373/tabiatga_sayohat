@@ -193,11 +193,15 @@ export default function Posts() {
                       ?.full_name || "Unknown Author"}
                   </td>
                   <td className="d-flex justify-content-between">
-                    <img
-                      src={`${BASE_URL}/uploads/${post.image}`}
-                      alt={post.title}
-                      width="100"
-                    />
+                    {post.images && post.images.split(",")[0] && (
+                      <img
+                        src={`${BASE_URL}/uploads/${post.images.split(",")[0]}`}
+                        alt={post.title}
+                        width="100"
+                        className="mx-20"
+                        style={{ height: "69px", objectFit: "cover" }}
+                      />
+                    )}
                     <div>
                       <button
                         onClick={() => handleEdit(post)}

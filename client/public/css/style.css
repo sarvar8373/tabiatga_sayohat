@@ -50,6 +50,13 @@ Version: 1.0.0
 .single-slide.overlay-bg-2:before {
   z-index: 1;
 }
+.active-link {
+  color: rgb(255, 83, 0) !important;
+  font-weight: bold;
+}
+.active-login {
+  color: #303030 !important;
+}
 /*Section title*/
 .section-title {
   margin-bottom: 35px;
@@ -279,7 +286,7 @@ nav.gene-nav {
   list-style: none;
 }
 .gene-nav .menu li a {
-  color: #adaeaf !important;
+  color: #adaeaf;
   display: block;
   font-size: 16px;
 }
@@ -294,7 +301,7 @@ nav.gene-nav ul.menu > li:first-child > a:nth-child(1) {
   color: #ff5300 !important;
 }
 .gene-nav ul.menu > li > a {
-  color: #ffffff !important;
+  color: #ffffff;
   font-size: 14px;
   opacity: 1;
   padding: 5px 19px 39px 15px;
@@ -1960,7 +1967,7 @@ footer.footer-area .widget p {
   border-radius: 0;
   text-transform: uppercase;
   padding-left: 0;
-  height: 50px;
+  height: 40px;
   border-bottom: 1px solid #edf0f5;
 }
 .adventure-select form.adventure-select-form input[type="date"] {
@@ -1975,7 +1982,7 @@ footer.footer-area .widget p {
   border-left: none;
 }
 .view-grid {
-  width: 18%;
+  width: 100%;
 }
 .view-grid ul {
   margin-top: 14px;
@@ -3048,13 +3055,16 @@ form.blog-select-form select.form-select {
   display: none;
 }
 .entry-header h2.entry-title {
+  color: #303030;
   font-size: 25px;
   line-height: 35px;
 }
 .entry-header a:hover h2.entry-title {
   color: #ff5300;
 }
-
+.sidebar-post {
+  color: #303030;
+}
 .entry-content {
   margin-bottom: 30px;
 }
@@ -3495,4 +3505,9 @@ form.user-reply .single-field textarea {
   line-height: 54px;
   display: inline-block;
   border-radius: 3px;
+}
+@media only screen and (max-width: 700px) {
+  .log {
+    max-width: 170px;
+  }
 }

@@ -5,19 +5,41 @@ import { useParams } from "react-router-dom";
 import { BASE_URL } from "../../api/host/host";
 import axios from "axios";
 import { HelmetProvider, Helmet } from "react-helmet-async";
+import { Button } from "react-bootstrap";
+import AdventureModal from "../adventure/modal";
+import CustomCarousel from "../../components/carousel/carousel";
 
 export default function Detail() {
   const { id } = useParams();
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [tours, setTours] = useState({});
+  const [selectedAdventure, setSelectedAdventure] = useState(null);
+  const [showModal, setShowModal] = useState(false); // State for modal visibility
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/tours/tour/${id}`);
         if (response.data.Status) {
-          setTour(response.data.Result);
+          const tourData = response.data.Result;
+          setTour(tourData);
+
+          // Assuming tourData.tourism_service_id is an array of IDs
+          const serviceIds = [tourData.tourism_service_id]; // Adjust if this is not an array
+          const tourPromises = serviceIds.map((serviceId) =>
+            axios.get(`${BASE_URL}/services/tour_services/${serviceId}`)
+          );
+
+          const tourResponses = await Promise.all(tourPromises);
+          const tourMap = {};
+          tourResponses.forEach((res) => {
+            if (res.data.Status) {
+              tourMap[res.data.Result.id] = res.data.Result.name;
+            }
+          });
+          setTours(tourMap);
         } else {
           setError("Tour not found");
         }
@@ -29,18 +51,21 @@ export default function Detail() {
     };
     fetchPost();
   }, [id]);
+
   if (loading)
     return (
       <div>
         <p>Loading...</p>
       </div>
     );
+
   if (error)
     return (
       <div>
         <p>{error}</p>
       </div>
     );
+
   return (
     <div>
       <HelmetProvider>
@@ -80,18 +105,19 @@ export default function Detail() {
             <div className="col-lg-10">
               <div className="dis-alpine section-title text-center">
                 <h2>{tour.title}</h2>
+
                 <div className="sin-sis-alpine-wrap">
                   <div className="row">
                     <div className="col-sm-4">
                       <div className="single-alpine">
-                        <h4>Byudjet</h4>
+                        <h4>Narxi</h4>
                         <h3>{tour.price}</h3>
                         <p>{tour.price_description}</p>
                       </div>
                     </div>
                     <div className="col-sm-4">
                       <div className="single-alpine">
-                        <h4>Budjet</h4>
+                        <h4>Reytingi</h4>
                         <ul>
                           <li>
                             <i className="fas fa-star"></i>
@@ -115,21 +141,34 @@ export default function Detail() {
                     <div className="col-sm-4">
                       <div className="single-alpine">
                         <h4>Davomiyligi</h4>
-                        <h3>1 kunlar</h3>
+                        <h3>1 kun</h3>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+              <CustomCarousel
+                images={tour.images}
+                width="100%"
+                height="500px"
+              />
             </div>
           </div>
           <div className="row">
             <div className="col-lg-6">
               <div className="alpine-left-content mb-40">
                 {tour.description}
-                <a href="/" className="btn btn-theme mt-3">
-                  Ushbu sayohatni bron qiling
-                </a>
+                <br />
+                <Button
+                  type="button"
+                  className="btn btn-theme mt-3 border-0"
+                  onClick={() => {
+                    setSelectedAdventure(tour);
+                    setShowModal(true);
+                  }}
+                >
+                  Bron qiling
+                </Button>
               </div>
             </div>
             <div className="col-lg-6">
@@ -143,7 +182,7 @@ export default function Detail() {
                         <p>Tugatish</p>
                         <p>Mamlakatlar</p>
                       </div>
-                      <div class="trip-content-two">
+                      <div className="trip-content-two">
                         <p>9:00</p>
                         <p>12:00</p>
                         <p>Toshkent viloyati</p>
@@ -155,7 +194,7 @@ export default function Detail() {
                         <p>Odamlar soni</p>
                         <p>Mavsum</p>
                       </div>
-                      <div class="trip-content-two">
+                      <div className="trip-content-two">
                         <p>12+</p>
                         <p>2-6 Odamlar</p>
                         <p>Noyabr-Yanvar</p>
@@ -168,33 +207,26 @@ export default function Detail() {
                     <h4>Faoliyatlar</h4>
                     <ul>
                       <li>
-                        <img src="img/icon/a1.png" alt="" />
-                        <span>Kemping</span>
-                      </li>
-                      <li>
-                        <img src="img/icon/a2.png" alt="" />
-                        <span>Kemping</span>
-                      </li>
-                      <li>
-                        <img src="img/icon/a6.png" alt="" />
-                        <span>Kemping</span>
+                        <img
+                          src="/img/icon/e2.png"
+                          alt=""
+                          style={{ height: "50px" }}
+                          width="50"
+                        />
+                        <span>{tours[tour.tourism_service_id]}</span>
                       </li>
                     </ul>
                   </div>
                   <div className="single-acivement">
-                    <h4>Faoliyatlar</h4>
+                    <h4>Bog'lanish</h4>
                     <ul>
                       <li>
-                        <img src="img/icon/n1.png" alt="" />
-                        <span>Oddiy</span>
-                      </li>
-                      <li>
-                        <img src="img/icon/n2.png" alt="" />
-                        <span>O'rta</span>
-                      </li>
-                      <li>
-                        <img src="img/icon/n3.png" alt="" />
-                        <span>Ekstremal</span>
+                        <img
+                          src="/img/icon/c3.png"
+                          alt=""
+                          style={{ height: "50px" }}
+                        />
+                        <span> +99899333333</span>
                       </li>
                     </ul>
                   </div>
@@ -210,7 +242,7 @@ export default function Detail() {
             <div className="col-lg-10">
               <div className="section-title text-center">
                 <p className="title">Muhim sayohat ma'lumotlari</p>
-                <h2>TRIP qo'shimchalari</h2>
+                <h2>Qo'shimcha ma'lumotlar</h2>
                 <p>
                   Ushbu sayohat haqida chuqurroq ma'lumot olishni xohlaysizmi?
                   Muhim sayohat Ma'lumot batafsil marshrutni, viza haqida
@@ -226,7 +258,7 @@ export default function Detail() {
               <div className="inclution-wrap">
                 <div className="single-inclution">
                   <div className="inclution-thumb">
-                    <img src="img/icon/i1.png" alt="" />
+                    <img src="/img/icon/i1.png" alt="" />
                   </div>
                   <div className="inclution-content">
                     <h4>Turar joy</h4>
@@ -239,7 +271,7 @@ export default function Detail() {
               <div className="inclution-wrap">
                 <div className="single-inclution">
                   <div className="inclution-thumb">
-                    <img src="img/icon/i2.png" alt="" />
+                    <img src="/img/icon/i2.png" alt="" />
                   </div>
                   <div className="inclution-content">
                     <h4>Ovqatlar</h4>
@@ -252,84 +284,14 @@ export default function Detail() {
               <div className="inclution-wrap">
                 <div className="single-inclution">
                   <div className="inclution-thumb">
-                    <img src="img/icon/i3.png" alt="" />
+                    <img src="/img/icon/i3.png" alt="" />
                   </div>
-                  <div class="inclution-content">
+                  <div className="inclution-content">
                     <h4>Transport</h4>
                     <p>Poyezd, Jamoat avtobusi, Taksi, Tramvay, Metro</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="trip-date-area pt-100 pb-150">
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-lg-8">
-              <div className="section-title text-center">
-                <p className="title">Trip Date and Time</p>
-                <h2>
-                  Biz u erda bo'lamiz, xuddi biz kabi<span></span> oldin u erda
-                  bo'lgan
-                </h2>
-              </div>
-            </div>
-          </div>
-          <div className="row">
-            <div className="trip-table table-responsive">
-              <table className="table text-center">
-                <thead>
-                  <tr>
-                    <th scope="col">
-                      <p className="pl-15">Ketish</p>
-                    </th>
-                    <th scope="col">
-                      <p>Tugatish</p>
-                    </th>
-                    <th scope="col">
-                      <p>Safar holati</p>
-                    </th>
-                    <th scope="col">
-                      <p>
-                        Sayohat narxi<small>Bir kishi uchun</small>
-                      </p>
-                    </th>
-                    <th scope="col">
-                      <p>Harakat</p>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">
-                      <span className="pl-15">2022 yil 25 aprel dushanba</span>
-                    </th>
-                    <td>2022 yil 3 may, seshanba</td>
-                    <td>Mavjud</td>
-                    <td>$1,205 - $2,205</td>
-                    <td className="button">
-                      <a className="btn-bor" href="/">
-                        Hozir band qiling
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      <span className="pl-15">Mon 9 2022 yil may</span>
-                    </th>
-                    <td>2022 yil 17-may, seshanba</td>
-                    <td>Mavjud</td>
-                    <td>$2,205 - $3,350</td>
-                    <td className="button">
-                      <a className="btn-theme" href="/">
-                        Kutishda joylashtirish
-                      </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
             </div>
           </div>
         </div>
@@ -342,6 +304,13 @@ export default function Detail() {
         </div>
       </div>{" "}
       <Footer />
+      {selectedAdventure && (
+        <AdventureModal
+          adventure={selectedAdventure}
+          showModal={showModal}
+          handleClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

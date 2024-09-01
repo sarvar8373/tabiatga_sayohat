@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { putTour } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
+import { BASE_URL } from "../../../../api/host/host";
 
 export default function AdobeEdit({
   adobe,
@@ -12,10 +13,19 @@ export default function AdobeEdit({
 }) {
   const [editadobe, setEditadobe] = useState(adobe);
   const { userDetails } = useAuth();
+  const [imagePreviews, setImagePreviews] = useState([]);
 
   useEffect(() => {
     if (adobe) {
       setEditadobe(adobe);
+      if (adobe.images) {
+        const imageArray = Array.isArray(adobe.images)
+          ? adobe.images
+          : adobe.images.split(",");
+        setImagePreviews(imageArray.map((img) => `${BASE_URL}/uploads/${img}`));
+      } else {
+        setImagePreviews([]);
+      }
     }
   }, [adobe]);
 
@@ -34,8 +44,15 @@ export default function AdobeEdit({
     formData.append("district_id", editadobe.district_id);
     formData.append("status", editadobe.status);
     formData.append("tourism_service_id", editadobe.tourism_service_id);
-    if (editadobe.image instanceof File) {
-      formData.append("image", editadobe.image);
+
+    if (editadobe.images instanceof FileList) {
+      Array.from(editadobe.images).forEach((file) => {
+        formData.append("images", file); // Append all images
+      });
+    } else if (Array.isArray(editadobe.images)) {
+      editadobe.images.forEach((file, index) => {
+        formData.append(`images[${index}]`, file); // Append all images
+      });
     }
 
     putTour(editadobe.id, formData)
@@ -47,6 +64,21 @@ export default function AdobeEdit({
         }
       })
       .catch((err) => console.log(err));
+  };
+
+  const handleImageChange = (e) => {
+    const files = e.target.files; // FileList object
+    if (files.length > 0) {
+      const newImages = Array.from(files).map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      }));
+      setEditadobe({
+        ...editadobe,
+        images: files,
+      });
+      setImagePreviews(newImages.map((img) => img.preview));
+    }
   };
 
   return (
@@ -176,17 +208,29 @@ export default function AdobeEdit({
           </div>
         )}
         <div className="form-group my-3">
-          <label htmlFor="image" className="my-2">
+          <label htmlFor="images" className="my-2">
             Rasm
           </label>
           <input
             type="file"
-            id="imageFile"
+            id="images"
             className="form-control"
-            onChange={(e) =>
-              setEditadobe({ ...editadobe, image: e.target.files[0] })
-            }
+            multiple
+            onChange={handleImageChange}
           />
+          {imagePreviews.length > 0 && (
+            <div className="image-previews mt-3">
+              {imagePreviews.map((preview, index) => (
+                <img
+                  key={index}
+                  src={preview}
+                  alt={`Preview ${index}`}
+                  width="100"
+                  className="mx-2"
+                />
+              ))}
+            </div>
+          )}
         </div>
         <button
           type="button"

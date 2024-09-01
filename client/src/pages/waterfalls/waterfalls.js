@@ -114,51 +114,57 @@ export default function Waterfalls() {
               </div>
               <div className="single-blog-post-wrap">
                 {posts.length > 0 ? (
-                  currentPosts.map((post) => (
-                    <div key={post.id} className="single-blog-post">
-                      <div className="post-thumbnail">
-                        <img
-                          src={`${BASE_URL}/uploads/${post.image}`}
-                          alt={post.title}
-                          style={{ width: "870px", height: "400px" }}
-                        />
+                  currentPosts
+                    .filter((post) => post.status !== 0)
+                    .map((post) => (
+                      <div key={post.id} className="single-blog-post">
+                        <div className="post-thumbnail">
+                          {post.images && post.images.split(",")[0] && (
+                            <img
+                              src={`${BASE_URL}/uploads/${
+                                post.images.split(",")[0]
+                              }`}
+                              alt={post.title}
+                              style={{ width: "870px", height: "400px" }}
+                            />
+                          )}
+                        </div>
+                        <div className="single-post-content-thumb">
+                          <div className="post-meta">
+                            <span>
+                              <i className="fal fa-clock"></i>
+                              {new Date().toLocaleDateString()}
+                            </span>
+                            <span>
+                              <i className="fal fa-user"></i>
+                              {post.author_id}
+                            </span>
+                            <span>
+                              <i className="fad fa-eye"></i>
+                              12
+                            </span>
+                            <span>
+                              <i className="fal fa-comments"></i>
+                              {post.comments} Komentariyalar
+                            </span>
+                          </div>
+                          <div className="entry-header">
+                            <Link to={`/posts/${post.id}`}>
+                              <h2 className="entry-title">{post.title}</h2>
+                            </Link>
+                          </div>
+                          <div className="entry-content">
+                            <p>{post.excerpt}</p>
+                            <Link
+                              to={`/posts/${post.id}`}
+                              className="btn border-theme"
+                            >
+                              Batafsil
+                            </Link>
+                          </div>
+                        </div>
                       </div>
-                      <div className="single-post-content-thumb">
-                        <div className="post-meta">
-                          <span>
-                            <i className="fal fa-clock"></i>
-                            {new Date().toLocaleDateString()}
-                          </span>
-                          <span>
-                            <i className="fal fa-user"></i>
-                            {post.author_id}
-                          </span>
-                          <span>
-                            <i className="fad fa-eye"></i>
-                            12
-                          </span>
-                          <span>
-                            <i className="fal fa-comments"></i>
-                            {post.comments} Komentariyalar
-                          </span>
-                        </div>
-                        <div className="entry-header">
-                          <Link to={`/posts/${post.id}`}>
-                            <h2 className="entry-title">{post.title}</h2>
-                          </Link>
-                        </div>
-                        <div className="entry-content">
-                          <p>{post.excerpt}</p>
-                          <Link
-                            to={`/posts/${post.id}`}
-                            className="btn border-theme"
-                          >
-                            Batafsil
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
                   <p>No posts found in this category.</p>
                 )}

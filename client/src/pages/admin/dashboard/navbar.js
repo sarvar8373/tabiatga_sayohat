@@ -1,19 +1,61 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
+import { getNotification } from "../../../http/notificationApi";
+
 export default function Navbar() {
   const [isCollapseTwoOpen, setIsCollapseTwoOpen] = useState(false);
   const [isCollapseTwoOne, setIsCollapseTwoOne] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
   const { userDetails, logout } = useAuth();
+
   const handleLogoutClick = () => {
     logout();
   };
 
+  const fetchNotifications = () => {
+    getNotification()
+      .then((notificationResult) => {
+        if (notificationResult.data.Status) {
+          const newNotifications = notificationResult.data.Result;
+          setNotifications(newNotifications);
+          setNotificationCount(newNotifications.length);
+        } else {
+          console.log(notificationResult.data.Error);
+        }
+      })
+      .catch((err) => console.log(err));
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    // Polling every 30 seconds (adjust as needed)
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleCollapseToggle = () => {
     setIsCollapseTwoOpen(!isCollapseTwoOpen);
   };
+
   const handleCollapseToggles = () => {
     setIsCollapseTwoOne(!isCollapseTwoOne);
+  };
+
+  const handleDropdownToggle = () => {
+    setIsCollapseTwoOne(!isCollapseTwoOne);
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${hours}:${minutes}  ${day}.${month}.${year}`;
   };
 
   return (
@@ -93,24 +135,45 @@ export default function Navbar() {
             aria-expanded={isCollapseTwoOne}
           >
             <i className="fas fa-bell fa-fw"></i>
-            <span className="badge badge-danger badge-counter">3+</span>
+            <span
+              className={`badge ${
+                notificationCount > 0 ? "badge-danger" : ""
+              } badge-counter`}
+            >
+              {notificationCount > 0 ? notificationCount : ""}
+            </span>
           </a>
           <div
-            className={`dropdown-list end-0 dropdown-menu dropdown-menu-right shadow animated--grow-in collapse ${
-              isCollapseTwoOne ? "show" : ""
-            }`}
+            className={`dropdown-list end-0 dropdown-menu dropdown-menu-right shadow animated--grow-in collapse`}
             aria-labelledby="alertsDropdown"
           >
-            <h6 className="dropdown-header">Xabarnoma</h6>
-            <a className="dropdown-item d-flex align-items-center" href="#">
-              <div>
-                <div className="small text-gray-500">Avgust 8, 2024</div>
-                <span className="font-weight-bold">Foydalanuvchidan xabar</span>
+            <h6 className="dropdown-header fs-6">Bildirishnoma</h6>
+            {notifications.length === 0 ? (
+              <div className="dropdown-item text-center small text-gray-500">
+                Bildirishnomalar yo'q
               </div>
-            </a>
+            ) : (
+              notifications.slice(0, 3).map((notification) => (
+                <Link
+                  key={notification.id}
+                  className="dropdown-item"
+                  to="./notification"
+                >
+                  <div className="d-flex gap-3 justify-content-between">
+                    <span className="font-weight-bold">
+                      {notification.message}
+                    </span>
+                    <div className="small text-gray-500">
+                      {formatDate(notification.created_at)}
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
             <Link
               className="dropdown-item text-center small text-gray-500"
               to="./notification"
+              onClick={() => setNotificationCount(0)}
             >
               Barchasini ko'rish
             </Link>
@@ -141,9 +204,7 @@ export default function Navbar() {
             /> */}
           </a>
           <div
-            className={`dropdown-menu end-0 dropdown-menu-right shadow animated--grow-in collapse ${
-              isCollapseTwoOpen ? "show" : ""
-            }`}
+            className={`dropdown-menu end-0 dropdown-menu-right shadow animated--grow-in collapse`}
             aria-labelledby="userDropdown"
           >
             <Link className="dropdown-item" to="./profile">
