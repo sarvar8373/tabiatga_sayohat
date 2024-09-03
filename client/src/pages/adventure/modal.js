@@ -4,18 +4,20 @@ import { BASE_URL } from "../../api/host/host";
 import { useNavigate } from "react-router-dom";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css"; // Ensure you have Bootstrap CSS imported
-import { postLogin } from "../../http/usersApi";
+import { getUserDetails, postLogin } from "../../http/usersApi";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdventureModal({ adventure, showModal, handleClose }) {
   const [phone_number, setPhone_number] = useState("");
   const [full_name, setFull_name] = useState("");
   const [password, setPassword] = useState("");
-  const [isExistingUser, setIsExistingUser] = useState(false); // Correctly initialize as boolean
+  const [isExistingUser, setIsExistingUser] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [step, setStep] = useState(1);
+  const [cls, setCls] = useState("none");
   const navigate = useNavigate();
-
+  const { login } = useAuth();
   const handlePhoneNumberCheck = async () => {
     setLoading(true);
     setError("");
@@ -40,59 +42,53 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
       let token;
 
       if (!isExistingUser) {
-        // Create new user
+        // Register new user
         await axios.post(`${BASE_URL}/auth/add_user`, {
           phone_number,
           full_name,
           password,
         });
-        // Login the user after registration
-        const loginResponse = await postLogin({ phone_number, password });
+      }
+      await login(phone_number, password);
+      // Login user
+      const loginResponse = await postLogin({
+        phone_number: phone_number,
+        password: password,
+      });
+
+      if (loginResponse.data && loginResponse.data.token) {
         token = loginResponse.data.token;
 
         // Store the token in localStorage
         localStorage.setItem("token", token);
+
+        // Fetch user details with the retrieved token
+        const userResponse = await getUserDetails();
+        userId = userResponse.data.id;
+
+        if (!userId) {
+          throw new Error("User ID is not available");
+        }
+
+        // Place order
+        const orderResponse = await axios.post(`${BASE_URL}/orders/add_order`, {
+          user_id: userId,
+          tour_id: adventure.id,
+          quantity: 1,
+          total_price: adventure.price,
+          status: "pending",
+        });
+
+        if (orderResponse.status === 200) {
+          navigate("/dashboard");
+          handleClose(); // Close the modal on successful order
+        } else {
+          setError(
+            "Failed to place the order. Status: " + orderResponse.status
+          );
+        }
       } else {
-        // Login existing user
-        const loginResponse = await postLogin({ phone_number, password });
-        token = loginResponse.data.token;
-
-        // Store the token in localStorage
-        localStorage.setItem("token", token);
-      }
-
-      // Retrieve token from localStorage
-      const storedToken = localStorage.getItem("token");
-      console.log("Stored Token:", storedToken); // Debug token here
-
-      // Fetch user details with the retrieved token
-      const userResponse = await axios.get(`${BASE_URL}/auth/user`, {
-        headers: { Authorization: `Bearer ${storedToken}` }, // Ensure the token is included in the header
-        withCredentials: true,
-      });
-
-      console.log("User response:", userResponse.data); // Debug user response
-
-      userId = userResponse.data.id;
-
-      if (!userId) {
-        throw new Error("User ID is not available");
-      }
-
-      // Place order
-      const orderResponse = await axios.post(`${BASE_URL}/orders/add_order`, {
-        user_id: userId,
-        tour_id: adventure.id,
-        quantity: 1,
-        total_price: adventure.price,
-        status: "pending",
-      });
-
-      if (orderResponse.status === 200) {
-        navigate("/dashboard");
-        handleClose(); // Close the modal on successful order
-      } else {
-        setError("Failed to place the order. Status: " + orderResponse.status);
+        setError("Failed to log in. No token received.");
       }
     } catch (err) {
       console.error("Error details:", err);

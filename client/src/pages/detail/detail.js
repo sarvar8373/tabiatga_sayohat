@@ -15,7 +15,7 @@ export default function Detail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tours, setTours] = useState({});
-  const [selectedAdventure, setSelectedAdventure] = useState(null);
+  const [selectedAdventure, setSelectedAdventure] = useState("");
   const [showModal, setShowModal] = useState(false); // State for modal visibility
 
   useEffect(() => {
