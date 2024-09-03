@@ -147,6 +147,7 @@ export default function Register() {
                         value={role}
                         onChange={(e) => setRole(e.target.value)}
                         required
+                        style={{ fontSize: "13px" }}
                       >
                         <option value="customer">Foydalanuvchi</option>
                         <option value="user">Tadbirkor</option>
