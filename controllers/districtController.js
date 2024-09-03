@@ -32,7 +32,7 @@ export const getDistricts = (req, res) => {
 
 export const getDistrictRegion = (req, res) => {
   const regionId = req.params.region_id;
-  console.log(`Received region_id: ${regionId}`); // Log received regionId
+  // Log received regionId
 
   const sql = "SELECT * FROM districts WHERE region_id = ?";
   DB.query(sql, [regionId], (err, result) => {
@@ -41,7 +41,7 @@ export const getDistrictRegion = (req, res) => {
       return res.status(500).json({ Status: false, Error: "Query error" });
     }
 
-    console.log(`Query result: ${JSON.stringify(result)}`); // Log query result
+    // Log query result
     return res.json({ Status: true, Result: result });
   });
 };

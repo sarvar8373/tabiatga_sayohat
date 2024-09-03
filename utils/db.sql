@@ -1,6 +1,15 @@
-CREATE TABLE notifications (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  message VARCHAR(255) NOT NULL,
-  type VARCHAR(50) NOT NULL,  -- e.g., 'tour', 'user'
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+SELECT notification_id
+FROM tours
+WHERE notification_id IS NOT NULL
+AND notification_id NOT IN (SELECT id FROM notifications);
+
+DELETE FROM tours
+WHERE notification_id IS NOT NULL
+AND notification_id NOT IN (SELECT id FROM notifications);
+
+ALTER TABLE `tours`
+ADD CONSTRAINT `tours_ibfk_4`
+FOREIGN KEY (`notification_id`)
+REFERENCES `notifications`(`id`)
+ON DELETE RESTRICT
+ON UPDATE RESTRICT;

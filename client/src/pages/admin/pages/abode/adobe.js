@@ -3,11 +3,13 @@ import { getRegions, getSelectRegion } from "../../../../http/usersApi";
 import { postTour } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { getTourService } from "../../../../http/tourServices";
+import { postNotification } from "../../../../http/notificationApi";
 
 const Adobe = () => {
   const [tourServices, setTourServices] = useState([]);
   const [regions, setRegions] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [filteredRegions, setFilteredRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [error, setError] = useState("");
@@ -19,13 +21,14 @@ const Adobe = () => {
     price_description: "",
     country: "",
     status: "0",
+    notification_id: "",
     tourism_service_id: "", // Use string to match select values
   });
   const [images, setImages] = useState([]); // Change to handle multiple images
   const { userDetails } = useAuth();
 
+  // Fetch regions
   useEffect(() => {
-    // Fetch regions
     getRegions()
       .then((response) => {
         if (response.data.Status) {
@@ -40,8 +43,8 @@ const Adobe = () => {
       });
   }, []);
 
+  // Fetch tour services
   useEffect(() => {
-    // Fetch tour services
     getTourService()
       .then((response) => {
         if (response.data.Status) {
@@ -56,9 +59,56 @@ const Adobe = () => {
       });
   }, []);
 
+  // Filter regions and set districts based on user role
+  useEffect(() => {
+    if (userDetails.role === "region" && userDetails.region_id) {
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+
+      setDistricts([]);
+      setSelectedRegion("");
+      setSelectedDistrict("");
+    } else if (
+      userDetails.role === "district" &&
+      userDetails.region_id &&
+      userDetails.district_id
+    ) {
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+
+      if (regions.length > 0) {
+        getSelectRegion(userDetails.region_id)
+          .then((response) => {
+            if (response.data.Status) {
+              // Filter to show only the district that matches the user's district_id
+              const filteredDistricts = response.data.Result.filter(
+                (district) => district.id === userDetails.district_id
+              );
+              setDistricts(filteredDistricts);
+              setSelectedRegion(userDetails.region_id);
+              setSelectedDistrict(userDetails.district_id);
+            } else {
+              setError(response.data.Error);
+            }
+          })
+          .catch((err) => {
+            setError("Error fetching districts.");
+            console.error(err);
+          });
+      }
+    } else {
+      setFilteredRegions(regions);
+      setDistricts([]);
+      setSelectedRegion("");
+      setSelectedDistrict("");
+    }
+  }, [regions, userDetails]);
+
+  // Fetch districts based on selected region
   useEffect(() => {
     if (selectedRegion) {
-      // Fetch districts based on selected region
       getSelectRegion(selectedRegion)
         .then((response) => {
           if (response.data.Status) {
@@ -72,38 +122,62 @@ const Adobe = () => {
           console.error(err);
         });
     } else {
-      // Reset districts if no region is selected
       setDistricts([]);
     }
   }, [selectedRegion]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === "region_id") {
+      setSelectedRegion(value);
+    } else if (name === "district_id") {
+      setSelectedDistrict(value);
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleFileChange = (e) => {
-    setImages([...e.target.files]); // Use spread operator to handle multiple files
+    setImages([...e.target.files]);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const data = new FormData();
-    data.append("title", formData.title);
-    data.append("description", formData.description);
-    images.forEach((file) => data.append("images", file)); // Append all images
-    data.append("price", formData.price);
-    data.append("price_description", formData.price_description);
-    data.append("tour_type", formData.tour_type);
-    data.append("country", formData.country);
-    data.append("region_id", selectedRegion);
-    data.append("district_id", selectedDistrict);
-    data.append("status", formData.status);
-    data.append("user_id", userDetails.id);
-    data.append("tourism_service_id", formData.tourism_service_id);
+    const notification = {
+      user_id: userDetails.id,
+      message: `Yangi Maskan: ${formData.title}`,
+      type: formData.status,
+    };
 
-    postTour(data)
+    // Post notification and get notification_id
+    postNotification(notification)
+      .then((notificationResponse) => {
+        const notificationId = notificationResponse.data.Result; // Adjust according to your API response
+        console.log("Notification ID:", notificationId);
+
+        // Check if notificationId is valid
+        if (!notificationId) {
+          throw new Error("Failed to retrieve notification ID.");
+        }
+
+        const data = new FormData();
+        data.append("title", formData.title);
+        data.append("description", formData.description);
+        images.forEach((file) => data.append("images", file)); // Append all images
+        data.append("price", formData.price);
+        data.append("price_description", formData.price_description);
+        data.append("tour_type", formData.tour_type);
+        data.append("country", formData.country);
+        data.append("region_id", selectedRegion);
+        data.append("district_id", selectedDistrict);
+        data.append("status", formData.status);
+        data.append("user_id", userDetails.id);
+        data.append("tourism_service_id", formData.tourism_service_id);
+        data.append("notification_id", notificationId); // Include notification_id
+
+        return postTour(data);
+      })
       .then((response) => {
         if (response.data.Status) {
           alert("Maskanlar qo'shildi");
@@ -115,18 +189,19 @@ const Adobe = () => {
             tourism_service_id: "",
             country: "",
             status: "0",
-            user_id: userDetails.id, // Reset to default value
+            notification_id: "",
+            user_id: userDetails.id,
           });
           setSelectedRegion("");
           setSelectedDistrict("");
-          setImages([]); // Reset images
+          setImages([]);
         } else {
           setError(response.data.Error || "Error adding tour.");
         }
       })
       .catch((error) => {
-        setError("Error adding tour.");
-        console.error("Error adding tour:", error);
+        setError(error.message || "Error adding tour.");
+        console.error("Error:", error);
       });
   };
 
@@ -202,7 +277,7 @@ const Adobe = () => {
               className="form-control"
             >
               <option value="">Viloyatni tanlang</option>
-              {regions.map((region) => (
+              {filteredRegions.map((region) => (
                 <option key={region.id} value={region.id}>
                   {region.name}
                 </option>
@@ -220,14 +295,20 @@ const Adobe = () => {
                 handleChange(e);
               }}
               className="form-control"
-              disabled={!selectedRegion}
+              disabled={
+                userDetails.role === "district" ? true : !selectedRegion
+              }
             >
               <option value="">Tumanni tanlang</option>
-              {districts.map((district) => (
-                <option key={district.id} value={district.id}>
-                  {district.name}
-                </option>
-              ))}
+              {districts.length > 0 ? (
+                districts.map((district) => (
+                  <option key={district.id} value={district.id}>
+                    {district.name}
+                  </option>
+                ))
+              ) : (
+                <option value="">Tumman topilmadi</option>
+              )}
             </select>
           </div>
           {userDetails.role === "admin" && (

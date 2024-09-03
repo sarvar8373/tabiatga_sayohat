@@ -183,7 +183,7 @@ export default function AdobeList() {
   useEffect(() => {
     const debouncedSearch = debounce(() => {
       handleSearch();
-    }, 300);
+    });
     debouncedSearch();
     return () => {
       debouncedSearch.cancel();

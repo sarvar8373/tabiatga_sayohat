@@ -127,7 +127,7 @@ header.header-area.style-2 .header-top-contact {
   position: relative;
 }
 .header-top-left > ul > li a {
-  color: #ffffff !important;
+  color: #ffffff;
   font-size: 14px;
   position: relative;
   margin-right: 20px;

@@ -29,57 +29,62 @@ router.post("/add_tour", upload.array("images"), (req, res) => {
     region_id,
     district_id,
     status,
+    notification_id, // Ensure this ID is valid and exists in the notifications table
     tourism_service_id,
   } = req.body;
-  const images = req.files
-    ? req.files.map((file) => file.filename).join(",")
-    : "";
 
-  const sql = `INSERT INTO tours (title, description, images, price, price_description, user_id, region_id, district_id, status, tourism_service_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  // Validate notification_id
+  if (!notification_id || notification_id === "undefined") {
+    return res.json({ Status: false, Error: "Invalid notification_id" });
+  }
 
-  const values = [
-    title,
-    description,
-    images,
-    price,
-    price_description,
-    user_id,
-    region_id,
-    district_id,
-    status,
-    tourism_service_id,
-  ];
+  // Additional check to verify if notification_id exists in the database (if needed)
+  const checkNotificationSql = `SELECT COUNT(*) as count FROM notifications WHERE id = ?`;
 
-  DB.query(sql, values, (err, result) => {
+  DB.query(checkNotificationSql, [notification_id], (err, result) => {
     if (err) {
       console.error(err);
-      return res.json({ Status: false, Error: "Query error" });
+      return res.json({
+        Status: false,
+        Error: "Query error while checking notification_id",
+      });
     }
 
-    if (status) {
-      const notificationSql =
-        "INSERT INTO notifications (message, type) VALUES (?, ?)";
-      const notificationMessage = `${title}`;
-      const notificationType = status;
+    if (result[0].count === 0) {
+      return res.json({
+        Status: false,
+        Error: "Notification ID does not exist",
+      });
+    }
 
-      DB.query(
-        notificationSql,
-        [notificationMessage, notificationType],
-        (notificationErr) => {
-          if (notificationErr) {
-            console.error("Error adding notification:", notificationErr);
-            return res.json({
-              Status: false,
-              Error: "Error adding notification",
-            });
-          }
+    const images = req.files
+      ? req.files.map((file) => file.filename).join(",")
+      : "";
 
-          return res.json({ Status: true });
-        }
-      );
-    } else {
+    const sql = `INSERT INTO tours (title, description, images, price, price_description, user_id, region_id, district_id, status, notification_id, tourism_service_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    const values = [
+      title,
+      description,
+      images,
+      price,
+      price_description,
+      user_id,
+      region_id,
+      district_id,
+      status,
+      notification_id,
+      tourism_service_id,
+    ];
+
+    DB.query(sql, values, (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.json({ Status: false, Error: "Query error" });
+      }
+
       return res.json({ Status: true });
-    }
+    });
   });
 });
 
@@ -97,31 +102,10 @@ router.delete("/tour/:id", (req, res) => {
     }
 
     if (result.affectedRows > 0) {
-      // Define the notification message and type
-      const notificationSql =
-        "INSERT INTO notifications (message, type) VALUES (?, ?)";
-      const notificationMessage = `Maskan o'chirildi ${tourId}`;
-      const notificationType = "delete"; // Set appropriate notification type here
-
-      // Insert notification
-      DB.query(
-        notificationSql,
-        [notificationMessage, notificationType],
-        (notificationErr) => {
-          if (notificationErr) {
-            console.error("Error adding notification:", notificationErr);
-            return res.json({
-              Status: false,
-              Error: "Error adding notification",
-            });
-          }
-
-          return res.json({
-            Status: true,
-            Message: "Tour deleted successfully",
-          });
-        }
-      );
+      return res.json({
+        Status: true,
+        Message: "Tour deleted successfully",
+      });
     } else {
       return res.json({
         Status: false,
@@ -191,30 +175,7 @@ router.put("/tour/:id", upload.array("images"), (req, res) => {
           return res.json({ Status: false, Error: "Query error" });
         }
 
-        if (status !== rows[0].status) {
-          const notificationSql =
-            "INSERT INTO notifications (message, type) VALUES (?, ?)";
-          const notificationMessage = title;
-          const notificationType = `${rows[0].status}`;
-
-          DB.query(
-            notificationSql,
-            [notificationMessage, notificationType],
-            (notificationErr) => {
-              if (notificationErr) {
-                console.error("Error adding notification:", notificationErr);
-                return res.json({
-                  Status: false,
-                  Error: "Error adding notification",
-                });
-              }
-
-              return res.json({ Status: true, Result: rows[0] });
-            }
-          );
-        } else {
-          return res.json({ Status: true, Result: rows[0] });
-        }
+        return res.json({ Status: true, Result: rows[0] });
       });
     } else {
       return res.json({

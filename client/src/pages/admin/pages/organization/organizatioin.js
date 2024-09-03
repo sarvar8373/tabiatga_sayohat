@@ -3,11 +3,22 @@ import {
   postOrganization,
   getOrganization,
 } from "../../../../http/organizationApi";
-import { getUsers } from "../../../../http/usersApi";
+import {
+  getRegions,
+  getSelectRegion,
+  getUsers,
+} from "../../../../http/usersApi";
 import { useAuth } from "../../../../context/AuthContext";
+import { postNotification } from "../../../../http/notificationApi";
 
 export default function Organization() {
   const { userDetails } = useAuth();
+  const [regions, setRegions] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [error, setError] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [filteredRegions, setFilteredRegions] = useState([]);
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const [authors, setAuthors] = useState([]);
   const [saved, setSaved] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,22 +29,92 @@ export default function Organization() {
     phone: "",
     main_rc: "",
     mfo: "",
-    region: "",
-    district: "",
+    region_id: "",
+    district_id: "",
     oked: "",
     director_name: "",
     director_pinfl: "",
     chief_accountant: "",
     goods_issued_by: "",
-    nds: "",
     excise_tax: "",
-    origin_of_goods: "",
-    auto_fill_cf_by_contract_id: "",
-    accept_discount_offers: "",
     user_id: userDetails.id,
-    status: "",
+    status: "0",
   });
+  useEffect(() => {
+    getRegions()
+      .then((response) => {
+        if (response.data.Status) {
+          setRegions(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Error fetching regions.");
+        console.error(err);
+      });
+  }, []);
 
+  useEffect(() => {
+    if (selectedRegion) {
+      getSelectRegion(selectedRegion)
+        .then((response) => {
+          if (response.data.Status) {
+            setDistricts(response.data.Result);
+          } else {
+            setError(response.data.Error);
+          }
+        })
+        .catch((err) => {
+          setError("Error fetching districts.");
+          console.error(err);
+        });
+    } else {
+      setDistricts([]);
+    }
+  }, [selectedRegion]);
+  useEffect(() => {
+    if (userDetails.role === "region" && userDetails.region_id) {
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+      setSelectedRegion(userDetails.region_id);
+      setSelectedDistrict("");
+      setDistricts([]);
+    } else if (
+      userDetails.role === "district" &&
+      userDetails.region_id &&
+      userDetails.district_id
+    ) {
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+      if (regions.length > 0) {
+        getSelectRegion(userDetails.region_id)
+          .then((response) => {
+            if (response.data.Status) {
+              const filteredDistricts = response.data.Result.filter(
+                (district) => district.id === userDetails.district_id
+              );
+              setDistricts(filteredDistricts);
+              setSelectedRegion(userDetails.region_id);
+              setSelectedDistrict(userDetails.district_id);
+            } else {
+              setError(response.data.Error);
+            }
+          })
+          .catch((err) => {
+            setError("Error fetching districts.");
+            console.error(err);
+          });
+      }
+    } else {
+      setFilteredRegions(regions);
+      setDistricts([]);
+      setSelectedRegion("");
+      setSelectedDistrict("");
+    }
+  }, [regions, userDetails]);
   useEffect(() => {
     // Fetch users for author dropdown
     getUsers()
@@ -73,7 +154,13 @@ export default function Organization() {
     try {
       const response = await postOrganization(formData);
       if (response.data.Status) {
-        alert("Organization added successfully!");
+        const notification = {
+          user_id: formData.user_id,
+          message: `Yangi tashkilot: ${formData.org_name}`,
+          type: formData.status, // Ensure status value is correctly set here
+        };
+        await postNotification(notification);
+        alert("Tashkilot qo'shildi!");
         setSaved(true);
       } else {
         alert("Failed to add organization: " + response.data.Error);
@@ -113,7 +200,8 @@ export default function Organization() {
                 placeholder="INN/PINFL *"
                 value={formData.inn_pinfl || ""}
                 onChange={handleChange}
-                disabled={formData.status === "0" || formData.status === 0}
+                disabled={saved}
+                required
               />
             </div>
             <div className="single-field half-field-last">
@@ -127,6 +215,7 @@ export default function Organization() {
                 value={formData.org_name || ""}
                 onChange={handleChange}
                 disabled={saved}
+                required
               />
             </div>
             <div className="single-field half-field">
@@ -195,32 +284,58 @@ export default function Organization() {
               />
             </div>
             <div className="single-field half-field-last">
-              <label htmlFor="region" className="mb-2">
+              <label htmlFor="region_id" className="mb-2">
                 Viloyat/Shahar
               </label>
-              <input
-                type="text"
-                name="region"
-                placeholder="Viloyat/Shahar"
-                value={formData.region || ""}
-                onChange={handleChange}
+              <select
+                id="region"
+                name="region_id"
+                value={formData.region_id}
+                onChange={(e) => {
+                  setSelectedRegion(e.target.value);
+                  handleChange(e);
+                }}
+                className="form-control"
+                style={{ fontSize: "15px" }}
                 disabled={saved}
-              />
-            </div>
-            <div className="single-field half-field">
-              <label htmlFor="district" className="mb-2">
-                Tuman
-              </label>
-              <input
-                type="text"
-                name="district"
-                placeholder="Tuman"
-                value={formData.district || ""}
-                onChange={handleChange}
-                disabled={saved}
-              />
+              >
+                <option value="">Viloyatni tanlang</option>
+                {filteredRegions.map((region) => (
+                  <option key={region.id} value={region.id}>
+                    {region.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="single-field half-field-last">
+              <label htmlFor="district_id" className="mb-2">
+                Tuman
+              </label>
+              <select
+                id="district"
+                name="district_id"
+                value={formData.district_id}
+                onChange={(e) => {
+                  setSelectedDistrict(e.target.value);
+                  handleChange(e);
+                }}
+                className="form-control my-3"
+                style={{ fontSize: "15px" }}
+                disabled={!selectedRegion + saved}
+              >
+                <option value="">Tumanni tanlang</option>
+                {districts.length > 0 ? (
+                  districts.map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Tumman topilmadi</option>
+                )}
+              </select>
+            </div>
+            <div className="single-field half-field">
               <label htmlFor="oked" className="mb-2">
                 OKED
               </label>
@@ -233,7 +348,7 @@ export default function Organization() {
                 disabled={saved}
               />
             </div>
-            <div className="single-field half-field">
+            <div className="single-field half-field-last">
               <label htmlFor="director_name" className="mb-2">
                 Direktor FIO
               </label>
@@ -246,7 +361,7 @@ export default function Organization() {
                 disabled={saved}
               />
             </div>
-            <div className="single-field half-field-last">
+            <div className="single-field half-field">
               <label htmlFor="director_pinfl" className="mb-2">
                 Direktor PINFL
               </label>
@@ -259,7 +374,7 @@ export default function Organization() {
                 disabled={saved}
               />
             </div>
-            <div className="single-field half-field">
+            <div className="single-field half-field-last">
               <label htmlFor="chief_accountant" className="mb-2">
                 Bosh xisobchi
               </label>
@@ -272,80 +387,28 @@ export default function Organization() {
                 disabled={saved}
               />
             </div>
-            <div className="single-field half-field-last">
+            <div className="single-field half-field">
               <label htmlFor="goods_issued_by" className="mb-2">
-                Chiqargan tovarlar
+                Kontakt ma'lumotlari
               </label>
               <input
                 type="text"
                 name="goods_issued_by"
-                placeholder="Chiqargan tovarlar"
+                placeholder="Kontakt ma'lumotlari"
                 value={formData.goods_issued_by || ""}
-                onChange={handleChange}
-                disabled={saved}
-              />
-            </div>
-            <div className="single-field half-field">
-              <label htmlFor="nds" className="mb-2">
-                NDS
-              </label>
-              <input
-                type="text"
-                name="nds"
-                placeholder="NDS"
-                value={formData.nds || ""}
                 onChange={handleChange}
                 disabled={saved}
               />
             </div>
             <div className="single-field half-field-last">
               <label htmlFor="excise_tax" className="mb-2">
-                Aksiz solig'i
+                Taqdim etilgan xizmatlar
               </label>
               <input
                 type="text"
                 name="excise_tax"
-                placeholder="Aksiz solig'i"
+                placeholder="Taqdim etilgan xizmatlar"
                 value={formData.excise_tax || ""}
-                onChange={handleChange}
-                disabled={saved}
-              />
-            </div>
-            <div className="single-field half-field">
-              <label htmlFor="origin_of_goods" className="mb-2">
-                Tovarlarning kelib chiqishi
-              </label>
-              <input
-                type="text"
-                name="origin_of_goods"
-                placeholder="Tovarlarning kelib chiqishi"
-                value={formData.origin_of_goods || ""}
-                onChange={handleChange}
-                disabled={saved}
-              />
-            </div>
-            <div className="single-field half-field-last">
-              <label htmlFor="auto_fill_cf_by_contract_id" className="mb-2">
-                Kontrakt identifikatori bo'yicha avtomatik to'ldirish ID
-              </label>
-              <input
-                type="text"
-                name="auto_fill_cf_by_contract_id"
-                placeholder="Kontrakt identifikatori bo'yicha avtomatik to'ldirish ID"
-                value={formData.auto_fill_cf_by_contract_id || ""}
-                onChange={handleChange}
-                disabled={saved}
-              />
-            </div>
-            <div className="single-field half-field">
-              <label htmlFor="accept_discount_offers" className="mb-2">
-                Chegirmali takliflarni qabul qilish
-              </label>
-              <input
-                type="text"
-                name="accept_discount_offers"
-                placeholder="Chegirmali takliflarni qabul qilish"
-                value={formData.accept_discount_offers || ""}
                 onChange={handleChange}
                 disabled={saved}
               />
@@ -357,6 +420,7 @@ export default function Organization() {
                   <select
                     id="status"
                     className="form-control"
+                    name="status"
                     onChange={handleChange}
                     disabled={saved}
                     value={formData.status}
@@ -367,7 +431,7 @@ export default function Organization() {
                 </div>
               </div>
             )}
-            <div className="single-field ">
+            <div className="single-field">
               <button
                 className="btn btn-success px-3 mt-5"
                 type="submit"

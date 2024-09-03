@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { putTour } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { BASE_URL } from "../../../../api/host/host";
+import { editNotification } from "../../../../http/notificationApi";
 
 export default function AdobeEdit({
   adobe,
@@ -12,9 +13,13 @@ export default function AdobeEdit({
   onCancel,
 }) {
   const [editadobe, setEditadobe] = useState(adobe);
-  const { userDetails } = useAuth();
+  const [filteredRegions, setFilteredRegions] = useState(regions);
+  const [filteredDistricts, setFilteredDistricts] = useState(districts);
   const [imagePreviews, setImagePreviews] = useState([]);
-
+  const { userDetails } = useAuth();
+  const [notificationStatus, setNotificationStatus] = useState(
+    editadobe.status
+  );
   useEffect(() => {
     if (adobe) {
       setEditadobe(adobe);
@@ -28,6 +33,32 @@ export default function AdobeEdit({
       }
     }
   }, [adobe]);
+
+  useEffect(() => {
+    if (userDetails.role === "region" && userDetails.region_id) {
+      // Filter regions for the "region" role
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+    } else if (userDetails.role === "district" && userDetails.region_id) {
+      // Filter regions and districts for the "district" role
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+      setFilteredDistricts(
+        districts.filter((district) => district.id === userDetails.district_id)
+      );
+      setEditadobe((prev) => ({
+        ...prev,
+        region_id: userDetails.region_id,
+        district_id: userDetails.district_id,
+      }));
+    } else {
+      // Show all regions and districts if not a specific role
+      setFilteredRegions(regions);
+      setFilteredDistricts(districts);
+    }
+  }, [regions, districts, userDetails]);
 
   const handleUpdate = () => {
     if (!editadobe || !editadobe.id) {
@@ -55,10 +86,33 @@ export default function AdobeEdit({
       });
     }
 
+    // Update tour
     putTour(editadobe.id, formData)
       .then((result) => {
         if (result.data.Status) {
-          onSave(result.data.Result);
+          // Update notification if status has changed
+          if (notificationStatus !== formData.status) {
+            // Create notification object
+            const notification = {
+              user_id: userDetails.id, // Pass the user ID if required
+              message: `Maskan o'zgartirildi ${editadobe.title}`, // Make sure to use template literals correctly
+              type: editadobe.status,
+            };
+
+            // Update the notification using its ID
+            editNotification(editadobe.notification_id, notification)
+              .then((notificationResult) => {
+                console.log("Notification updated:", notificationResult.data);
+                onSave(result.data.Result); // Call onSave after successful update
+              })
+              .catch((error) => {
+                console.error("Error updating notification:", error);
+                alert("Error updating notification.");
+              });
+          } else {
+            // If status has not changed, just save the result
+            onSave(result.data.Result);
+          }
         } else {
           alert(result.data.Error);
         }
@@ -80,7 +134,10 @@ export default function AdobeEdit({
       setImagePreviews(newImages.map((img) => img.preview));
     }
   };
-
+  const handleStatusChange = (e) => {
+    setEditadobe({ ...editadobe, status: e.target.value });
+    setNotificationStatus(e.target.value); // Update notification status
+  };
   return (
     <div>
       <h3>Tahrirlash</h3>
@@ -163,7 +220,7 @@ export default function AdobeEdit({
               setEditadobe({ ...editadobe, region_id: e.target.value })
             }
           >
-            {regions.map((region) => (
+            {filteredRegions.map((region) => (
               <option key={region.id} value={region.id}>
                 {region.name}
               </option>
@@ -181,8 +238,9 @@ export default function AdobeEdit({
             onChange={(e) =>
               setEditadobe({ ...editadobe, district_id: e.target.value })
             }
+            disabled={!editadobe.region_id}
           >
-            {districts.map((district) => (
+            {filteredDistricts.map((district) => (
               <option key={district.id} value={district.id}>
                 {district.name}
               </option>
@@ -198,9 +256,7 @@ export default function AdobeEdit({
               id="status"
               className="form-control"
               value={editadobe.status}
-              onChange={(e) =>
-                setEditadobe({ ...editadobe, status: e.target.value })
-              }
+              onChange={handleStatusChange}
             >
               <option value="0">Tasdiqlanmagan</option>
               <option value="1">Tasdiqlangan</option>

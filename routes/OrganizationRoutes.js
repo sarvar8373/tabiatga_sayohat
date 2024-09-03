@@ -13,19 +13,16 @@ router.post("/add_organization", (req, res) => {
     phone,
     main_rc,
     mfo,
-    region,
-    district,
+    region_id,
+    district_id,
     oked,
     director_name,
     director_pinfl,
     chief_accountant,
     goods_issued_by,
-    nds,
     excise_tax,
-    origin_of_goods,
-    auto_fill_cf_by_contract_id,
-    accept_discount_offers,
     user_id,
+    notification_id,
     status,
   } = req.body;
 
@@ -36,15 +33,14 @@ router.post("/add_organization", (req, res) => {
   }
 
   const sql = `
-    INSERT INTO organization_details 
-    (
-      user_id, inn_pinfl, org_name, reg_code_nds, address, phone, 
-      main_rc, mfo, region, district, oked, director_name, director_pinfl, 
-      chief_accountant, goods_issued_by, nds, excise_tax, origin_of_goods, 
-      auto_fill_cf_by_contract_id, accept_discount_offers, status
-    ) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  INSERT INTO organization_details 
+  (
+    user_id, inn_pinfl, org_name, reg_code_nds, address, phone, 
+    main_rc, mfo, region_id, district_id, oked, director_name, director_pinfl, 
+    chief_accountant, goods_issued_by, excise_tax, notification_id, status
+  ) 
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
 
   DB.query(
     sql,
@@ -57,18 +53,15 @@ router.post("/add_organization", (req, res) => {
       phone,
       main_rc,
       mfo,
-      region,
-      district,
+      region_id,
+      district_id,
       oked,
       director_name,
       director_pinfl,
       chief_accountant,
       goods_issued_by,
-      nds,
       excise_tax,
-      origin_of_goods,
-      auto_fill_cf_by_contract_id,
-      accept_discount_offers,
+      notification_id, // Use null if notification_id is not provided
       status,
     ],
     (err, result) => {
@@ -76,28 +69,7 @@ router.post("/add_organization", (req, res) => {
         console.error("Database error:", err);
         return res.status(500).json({ Status: false, Error: "Database error" });
       }
-
-      // Add notification
-      const notificationSql =
-        "INSERT INTO notifications (message, type) VALUES (?, ?)";
-      const notificationMessage = `Yangi tashkilot qo'shildi: ${org_name}`;
-      const notificationType = "info";
-
-      DB.query(
-        notificationSql,
-        [notificationMessage, notificationType],
-        (notificationErr) => {
-          if (notificationErr) {
-            console.error("Error adding notification:", notificationErr);
-            return res.json({
-              Status: false,
-              Error: "Error adding notification",
-            });
-          }
-
-          res.json({ Status: true, Result: { id: result.insertId, org_name } });
-        }
-      );
+      res.json({ Status: true, Result: { id: result.insertId, org_name } });
     }
   );
 });
@@ -120,30 +92,10 @@ router.delete("/organizations/:id", (req, res) => {
     if (err) return res.json({ Status: false, Error: "Query error" });
 
     if (result.affectedRows > 0) {
-      // Add notification
-      const notificationSql =
-        "INSERT INTO notifications (message, type) VALUES (?, ?)";
-      const notificationMessage = `Tashkilot o'chirildi: ${organizationId}`;
-      const notificationType = "delete";
-
-      DB.query(
-        notificationSql,
-        [notificationMessage, notificationType],
-        (notificationErr) => {
-          if (notificationErr) {
-            console.error("Error adding notification:", notificationErr);
-            return res.json({
-              Status: false,
-              Error: "Error adding notification",
-            });
-          }
-
-          return res.json({
-            Status: true,
-            Message: "Organization deleted successfully",
-          });
-        }
-      );
+      return res.json({
+        Status: true,
+        Message: "Organization deleted successfully",
+      });
     } else {
       return res.json({
         Status: false,
@@ -152,6 +104,8 @@ router.delete("/organizations/:id", (req, res) => {
     }
   });
 });
+
+// Get organizations by user ID
 router.get("/organizations/:userId", (req, res) => {
   const { userId } = req.params;
   const sql = "SELECT * FROM organization_details WHERE user_id = ?";
@@ -160,6 +114,7 @@ router.get("/organizations/:userId", (req, res) => {
     return res.json({ Status: true, Result: result });
   });
 });
+
 // Update organization details
 router.put("/organizations/:id", (req, res) => {
   const organizationId = req.params.id;
@@ -171,18 +126,14 @@ router.put("/organizations/:id", (req, res) => {
     phone,
     main_rc,
     mfo,
-    region,
-    district,
+    region_id,
+    district_id,
     oked,
     director_name,
     director_pinfl,
     chief_accountant,
     goods_issued_by,
-    nds,
     excise_tax,
-    origin_of_goods,
-    auto_fill_cf_by_contract_id,
-    accept_discount_offers,
     status,
   } = req.body;
 
@@ -195,18 +146,14 @@ router.put("/organizations/:id", (req, res) => {
       phone = ?, 
       main_rc = ?, 
       mfo = ?, 
-      region = ?, 
-      district = ?, 
+      region_id = ?, 
+      district_id = ?, 
       oked = ?, 
       director_name = ?, 
       director_pinfl = ?, 
       chief_accountant = ?, 
       goods_issued_by = ?, 
-      nds = ?, 
-      excise_tax = ?, 
-      origin_of_goods = ?, 
-      auto_fill_cf_by_contract_id = ?, 
-      accept_discount_offers = ?, 
+      excise_tax = ?,
       status = ? 
     WHERE id = ?
   `;
@@ -219,18 +166,14 @@ router.put("/organizations/:id", (req, res) => {
     phone,
     main_rc,
     mfo,
-    region,
-    district,
+    region_id,
+    district_id,
     oked,
     director_name,
     director_pinfl,
     chief_accountant,
     goods_issued_by,
-    nds,
     excise_tax,
-    origin_of_goods,
-    auto_fill_cf_by_contract_id,
-    accept_discount_offers,
     status,
     organizationId,
   ];
@@ -251,27 +194,7 @@ router.put("/organizations/:id", (req, res) => {
             return res.json({ Status: false, Error: "Query error" });
           }
 
-          // Add notification
-          const notificationSql =
-            "INSERT INTO notifications (message, type) VALUES (?, ?)";
-          const notificationMessage = `Tashkilot yangilandi: ${rows[0].org_name}`;
-          const notificationType = "update";
-
-          DB.query(
-            notificationSql,
-            [notificationMessage, notificationType],
-            (notificationErr) => {
-              if (notificationErr) {
-                console.error("Error adding notification:", notificationErr);
-                return res.json({
-                  Status: false,
-                  Error: "Error adding notification",
-                });
-              }
-
-              return res.json({ Status: true, Result: rows[0] });
-            }
-          );
+          return res.json({ Status: true, Result: rows[0] });
         }
       );
     } else {

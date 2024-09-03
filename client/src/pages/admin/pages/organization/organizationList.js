@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getUsers } from "../../../../http/usersApi";
+import { getDistricts, getRegions, getUsers } from "../../../../http/usersApi";
 import {
   deleteOrganization,
   getOrganizations,
@@ -13,6 +12,8 @@ import SearchItem from "../../../../components/search-item/searchItem";
 export default function OrganizationList() {
   const [organizations, setOrganizations] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
+  const [error, setError] = useState("");
+  const [regions, setRegions] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -20,8 +21,8 @@ export default function OrganizationList() {
   const [searchTerm1, setSearchTerm1] = useState(""); // For category search
   const [searchTerm2, setSearchTerm2] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [districts, setDistricts] = useState([]);
   const [postsPerPage] = useState(10);
-  const navigate = useNavigate();
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
@@ -29,7 +30,34 @@ export default function OrganizationList() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const { userDetails } = useAuth();
-
+  useEffect(() => {
+    getRegions()
+      .then((response) => {
+        if (response.data.Status) {
+          setRegions(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Error fetching regions.");
+        console.error(err);
+      });
+  }, []);
+  useEffect(() => {
+    getDistricts()
+      .then((response) => {
+        if (response.data.Status) {
+          setDistricts(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Error fetching districts.");
+        console.error(err);
+      });
+  }, []);
   useEffect(() => {
     getUsers()
       .then((userResult) => {
@@ -138,7 +166,7 @@ export default function OrganizationList() {
   useEffect(() => {
     const debouncedSearch = debounce(() => {
       handleSearch();
-    }, 300);
+    });
     debouncedSearch();
     // Cleanup function to cancel debounce on component unmount
     return () => {
@@ -151,6 +179,8 @@ export default function OrganizationList() {
       {showEditModal ? (
         <OrganizationEdit
           organization={selectedOrganization}
+          regions={regions}
+          districts={districts}
           onSave={handleSave}
           onCancel={handleCloseModal}
         />
@@ -205,7 +235,7 @@ export default function OrganizationList() {
                   <td>{c.address}</td>
                   <td>
                     {authors.find((author) => author.id === c.user_id)
-                      ?.full_name || "Unknown Author"}
+                      ?.full_name || "Aniqlanmagan Foydalanuvchi"}
                   </td>
                   <td className="d-flex justify-content-between">
                     <div>

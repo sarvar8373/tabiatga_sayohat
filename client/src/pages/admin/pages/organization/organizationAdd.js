@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { postOrganization } from "../../../../http/organizationApi";
-import { getUsers } from "../../../../http/usersApi";
+import {
+  getRegions,
+  getSelectRegion,
+  getUsers,
+} from "../../../../http/usersApi";
 import { useAuth } from "../../../../context/AuthContext";
+import { postNotification } from "../../../../http/notificationApi";
 
 export default function OrganizationAdd() {
+  const [regions, setRegions] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [error, setError] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [filteredRegions, setFilteredRegions] = useState([]);
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const [formData, setFormData] = useState({
     inn_pinfl: "",
     org_name: "",
@@ -12,23 +23,55 @@ export default function OrganizationAdd() {
     phone: "",
     main_rc: "",
     mfo: "",
-    region: "",
-    district: "",
+    region_id: "",
+    district_id: "",
     oked: "",
     director_name: "",
     director_pinfl: "",
     chief_accountant: "",
     goods_issued_by: "",
-    nds: "",
     excise_tax: "",
-    origin_of_goods: "",
-    auto_fill_cf_by_contract_id: "",
-    accept_discount_offers: "",
+    notification_id: "",
     user_id: "",
-    status: "",
+    status: "0",
   });
   const { userDetails } = useAuth();
   const [authors, setAuthors] = useState([]);
+
+  useEffect(() => {
+    getRegions()
+      .then((response) => {
+        if (response.data.Status) {
+          setRegions(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Error fetching regions.");
+        console.error(err);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (selectedRegion) {
+      getSelectRegion(selectedRegion)
+        .then((response) => {
+          if (response.data.Status) {
+            setDistricts(response.data.Result);
+          } else {
+            setError(response.data.Error);
+          }
+        })
+        .catch((err) => {
+          setError("Error fetching districts.");
+          console.error(err);
+        });
+    } else {
+      setDistricts([]);
+    }
+  }, [selectedRegion]);
+
   useEffect(() => {
     getUsers()
       .then((userResult) => {
@@ -40,6 +83,50 @@ export default function OrganizationAdd() {
       })
       .catch((err) => console.log(err));
   }, []);
+
+  useEffect(() => {
+    if (userDetails.role === "region" && userDetails.region_id) {
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+      setSelectedRegion(userDetails.region_id);
+      setSelectedDistrict("");
+      setDistricts([]);
+    } else if (
+      userDetails.role === "district" &&
+      userDetails.region_id &&
+      userDetails.district_id
+    ) {
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+      if (regions.length > 0) {
+        getSelectRegion(userDetails.region_id)
+          .then((response) => {
+            if (response.data.Status) {
+              const filteredDistricts = response.data.Result.filter(
+                (district) => district.id === userDetails.district_id
+              );
+              setDistricts(filteredDistricts);
+              setSelectedRegion(userDetails.region_id);
+              setSelectedDistrict(userDetails.district_id);
+            } else {
+              setError(response.data.Error);
+            }
+          })
+          .catch((err) => {
+            setError("Error fetching districts.");
+            console.error(err);
+          });
+      }
+    } else {
+      setFilteredRegions(regions);
+      setDistricts([]);
+      setSelectedRegion("");
+      setSelectedDistrict("");
+    }
+  }, [regions, userDetails]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -50,10 +137,28 @@ export default function OrganizationAdd() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const response = await postOrganization();
+      const notificationResponse = await postNotification({
+        user_id: formData.user_id,
+        message: `Yangi tashkilot: ${formData.org_name}`,
+        type: formData.status,
+      });
+
+      const notificationId = notificationResponse.data.Result;
+      console.log("Notification ID:", notificationId);
+
+      if (!notificationId) {
+        throw new Error("Failed to retrieve notification ID.");
+      }
+
+      const response = await postOrganization({
+        ...formData,
+        notification_id: notificationId, // Ensure this is passed correctly
+      });
+
       if (response.data.Status) {
-        alert("Organization added successfully!");
+        alert("Tashkilot qo'shildi!");
         setFormData({
           inn_pinfl: "",
           org_name: "",
@@ -62,20 +167,17 @@ export default function OrganizationAdd() {
           phone: "",
           main_rc: "",
           mfo: "",
-          region: "",
-          district: "",
+          region_id: "",
+          district_id: "",
           oked: "",
           director_name: "",
           director_pinfl: "",
           chief_accountant: "",
           goods_issued_by: "",
-          nds: "",
           excise_tax: "",
-          origin_of_goods: "",
-          auto_fill_cf_by_contract_id: "",
-          accept_discount_offers: "",
+          notification_id: "",
           user_id: "",
-          status: "",
+          status: "0",
         });
       } else {
         alert("Failed to add organization: " + response.data.Error);
@@ -85,6 +187,7 @@ export default function OrganizationAdd() {
       alert("Error adding organization. Please try again.");
     }
   };
+
   return (
     <div className="container-fluid px-4">
       <h2 className="mt-4">Tashkilot qo'shish</h2>
@@ -167,24 +270,51 @@ export default function OrganizationAdd() {
               />
             </div>
             <div className="single-field half-field-last">
-              <input
-                type="text"
-                name="region"
-                placeholder="Viloyat/Shahar"
-                value={formData.region}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field">
-              <input
-                type="text"
-                name="district"
-                placeholder="Tuman"
-                value={formData.district}
-                onChange={handleChange}
-              />
+              <select
+                id="region"
+                name="region_id"
+                value={formData.region_id}
+                onChange={(e) => {
+                  setSelectedRegion(e.target.value);
+                  handleChange(e);
+                }}
+                className="form-control"
+                style={{ fontSize: "15px" }}
+              >
+                <option value="">Viloyatni tanlang</option>
+                {filteredRegions.map((region) => (
+                  <option key={region.id} value={region.id}>
+                    {region.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="single-field half-field-last">
+              <select
+                id="district"
+                name="district_id"
+                value={formData.district_id}
+                onChange={(e) => {
+                  setSelectedDistrict(e.target.value);
+                  handleChange(e);
+                }}
+                className="form-control my-3"
+                style={{ fontSize: "15px" }}
+                disabled={!selectedRegion}
+              >
+                <option value="">Tumanni tanlang</option>
+                {districts.length > 0 ? (
+                  districts.map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Tumman topilmadi</option>
+                )}
+              </select>
+            </div>
+            <div className="single-field half-field">
               <input
                 type="text"
                 name="oked"
@@ -193,7 +323,7 @@ export default function OrganizationAdd() {
                 onChange={handleChange}
               />
             </div>
-            <div className="single-field half-field">
+            <div className="single-field half-field-last">
               <input
                 type="text"
                 name="director_name"
@@ -202,7 +332,7 @@ export default function OrganizationAdd() {
                 onChange={handleChange}
               />
             </div>
-            <div className="single-field half-field-last">
+            <div className="single-field half-field">
               <input
                 type="text"
                 name="director_pinfl"
@@ -211,7 +341,7 @@ export default function OrganizationAdd() {
                 onChange={handleChange}
               />
             </div>
-            <div className="single-field half-field">
+            <div className="single-field half-field-last">
               <input
                 type="text"
                 name="chief_accountant"
@@ -220,21 +350,12 @@ export default function OrganizationAdd() {
                 onChange={handleChange}
               />
             </div>
-            <div className="single-field half-field-last">
-              <input
-                type="text"
-                name="goods_issued_by"
-                placeholder="Chiqargan tovarlar"
-                value={formData.goods_issued_by}
-                onChange={handleChange}
-              />
-            </div>
             <div className="single-field half-field">
               <input
                 type="text"
-                name="nds"
-                placeholder="NDS"
-                value={formData.nds}
+                name="goods_issued_by"
+                placeholder="Kontakt ma'lumotlari"
+                value={formData.goods_issued_by}
                 onChange={handleChange}
               />
             </div>
@@ -242,44 +363,17 @@ export default function OrganizationAdd() {
               <input
                 type="text"
                 name="excise_tax"
-                placeholder="Aksiz solig'i"
+                placeholder="Taqdim etilgan xizmatlar"
                 value={formData.excise_tax}
                 onChange={handleChange}
               />
             </div>
             <div className="single-field half-field">
-              <input
-                type="text"
-                name="origin_of_goods"
-                placeholder="Tovarlarning kelib chiqishi"
-                value={formData.origin_of_goods}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field-last">
-              <input
-                type="text"
-                name="auto_fill_cf_by_contract_id"
-                placeholder="Kontrakt identifikatori bo'yicha avtomatik to'ldirish ID"
-                value={formData.auto_fill_cf_by_contract_id}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field">
-              <input
-                type="text"
-                name="accept_discount_offers"
-                placeholder="Chegirmali takliflarni qabul qilish"
-                value={formData.accept_discount_offers}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field-last">
               <label htmlFor="exampleFormControlInput1" className="form-label">
                 Foydalanucvchi
               </label>
               <select
-                className="form-select mb-4"
+                className="form-select "
                 aria-label="Default select example"
                 name="user_id" // Add name attribute here
                 onChange={handleChange}
@@ -293,14 +387,16 @@ export default function OrganizationAdd() {
                 ))}
               </select>
             </div>
-            <div className="single-field half-field">
+            <div className="single-field half-field-last">
               {userDetails.role === "admin" && (
-                <div className="form-group my-3">
+                <div className="single-field">
+                  <label htmlFor="status">Holati</label>
                   <select
                     id="status"
+                    name="status"
                     className="form-control"
-                    onChange={handleChange}
                     value={formData.status}
+                    onChange={handleChange}
                   >
                     <option value="0">Tasdiqlanmagan</option>
                     <option value="1">Tasdiqlangan</option>

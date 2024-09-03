@@ -1,29 +1,43 @@
 import React, { useEffect, useState } from "react";
 import { getNotification } from "../../../../http/notificationApi";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { getUsers } from "../../../../http/usersApi";
+import { useAuth } from "../../../../context/AuthContext";
 
 export default function Notification() {
   const [notification, setNotification] = useState([]);
+  const [authors, setAuthors] = useState([]);
+  const { userDetails } = useAuth();
 
-  const handleDelete = (id) => {
-    // Implement delete logic
-  };
-
-  const handleEdit = (id) => {
-    // Implement edit logic
-  };
+  useEffect(() => {
+    getUsers()
+      .then((userResult) => {
+        if (userResult.data.Status) {
+          setAuthors(userResult.data.Result);
+        } else {
+          alert(userResult.data.Error);
+        }
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
   useEffect(() => {
     getNotification()
       .then((notificationResult) => {
         if (notificationResult.data.Status) {
-          setNotification(notificationResult.data.Result);
+          const notifications =
+            userDetails.role === "admin"
+              ? notificationResult.data.Result
+              : notificationResult.data.Result.filter(
+                  (notification) => notification.user_id === userDetails.id
+                );
+          setNotification(notifications);
         } else {
           alert(notificationResult.data.Error);
         }
       })
       .catch((err) => console.log(err));
-  }, []);
+  }, [userDetails]); // Add userDetails as a dependency
 
   const getBackgroundColor = (type) => {
     switch (type) {
@@ -33,6 +47,7 @@ export default function Notification() {
         return "table-danger";
     }
   };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -43,6 +58,7 @@ export default function Notification() {
 
     return ` ${hours}:${minutes}/${day}.${month}.${year}`;
   };
+
   const getTypeLabel = (type) => {
     switch (type) {
       case "0":
@@ -53,6 +69,7 @@ export default function Notification() {
         return "";
     }
   };
+
   return (
     <div className="container-fluid">
       <h1>Bildirishnomalar</h1>
@@ -62,6 +79,7 @@ export default function Notification() {
             <th>ID</th>
             <th>Xabar</th>
             <th>Holati</th>
+            <th>Foydalanuvchi</th>
             <th>Sanasi</th>
           </tr>
         </thead>
@@ -70,7 +88,13 @@ export default function Notification() {
             <tr key={item.id} className={getBackgroundColor(item.type)}>
               <td>{index + 1}</td>
               <td>{item.message}</td>
-              <td> {getTypeLabel(item.type)}</td>
+              <td>{getTypeLabel(item.type)}</td>
+              <td>
+                {
+                  authors.find((author) => author.id === item.user_id)
+                    ?.full_name
+                }
+              </td>
               <td>{formatDate(item.created_at)}</td>
             </tr>
           ))}
