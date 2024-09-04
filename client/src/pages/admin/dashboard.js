@@ -37,7 +37,7 @@ export default function Dashboard() {
             <Navbar />
             <Routes>
               <Route path="/" element={<HomeAll />} />
-              <Route
+              {/* <Route
                 path="/organization"
                 element={
                   <ProtectedRoute
@@ -45,12 +45,12 @@ export default function Dashboard() {
                     element={<Organization />}
                   />
                 }
-              />
+              /> */}
               <Route
                 path="/organization-add"
                 element={
                   <ProtectedRoute
-                    requiredRole={["admin", "region", "district"]}
+                    requiredRole={["admin", "user"]}
                     element={<OrganizationAdd />}
                   />
                 }

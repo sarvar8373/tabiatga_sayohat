@@ -18,18 +18,12 @@ export default function OrganizationAdd() {
   const [formData, setFormData] = useState({
     inn_pinfl: "",
     org_name: "",
-    reg_code_nds: "",
     address: "",
     phone: "",
-    main_rc: "",
     mfo: "",
     region_id: "",
     district_id: "",
-    oked: "",
     director_name: "",
-    director_pinfl: "",
-    chief_accountant: "",
-    goods_issued_by: "",
     excise_tax: "",
     notification_id: "",
     user_id: "",
@@ -162,18 +156,12 @@ export default function OrganizationAdd() {
         setFormData({
           inn_pinfl: "",
           org_name: "",
-          reg_code_nds: "",
           address: "",
           phone: "",
-          main_rc: "",
           mfo: "",
           region_id: "",
           district_id: "",
-          oked: "",
           director_name: "",
-          director_pinfl: "",
-          chief_accountant: "",
-          goods_issued_by: "",
           excise_tax: "",
           notification_id: "",
           user_id: "",
@@ -224,15 +212,6 @@ export default function OrganizationAdd() {
                 required
               />
             </div>
-            <div className="single-field half-field">
-              <input
-                type="text"
-                name="reg_code_nds"
-                placeholder="NDS kodi"
-                value={formData.reg_code_nds}
-                onChange={handleChange}
-              />
-            </div>
             <div className="single-field half-field-last">
               <input
                 type="text"
@@ -248,15 +227,6 @@ export default function OrganizationAdd() {
                 name="phone"
                 placeholder="Telefon"
                 value={formData.phone}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field-last">
-              <input
-                type="text"
-                name="main_rc"
-                placeholder="Asosiy R/C"
-                value={formData.main_rc}
                 onChange={handleChange}
               />
             </div>
@@ -317,45 +287,9 @@ export default function OrganizationAdd() {
             <div className="single-field half-field">
               <input
                 type="text"
-                name="oked"
-                placeholder="OKED"
-                value={formData.oked}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field-last">
-              <input
-                type="text"
                 name="director_name"
                 placeholder="Direktor FIO"
                 value={formData.director_name}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field">
-              <input
-                type="text"
-                name="director_pinfl"
-                placeholder="Direktor PINFL"
-                value={formData.director_pinfl}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field-last">
-              <input
-                type="text"
-                name="chief_accountant"
-                placeholder="Bosh xisobchi"
-                value={formData.chief_accountant}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="single-field half-field">
-              <input
-                type="text"
-                name="goods_issued_by"
-                placeholder="Kontakt ma'lumotlari"
-                value={formData.goods_issued_by}
                 onChange={handleChange}
               />
             </div>
@@ -368,42 +302,45 @@ export default function OrganizationAdd() {
                 onChange={handleChange}
               />
             </div>
-            <div className="single-field half-field">
-              <label htmlFor="exampleFormControlInput1" className="form-label">
-                Foydalanucvchi
-              </label>
-              <select
-                className="form-select "
-                aria-label="Default select example"
-                name="user_id" // Add name attribute here
-                onChange={handleChange}
-                value={formData.user_id} // Set value to control the selected option
-              >
-                <option value="">Tadbirkorni tanlang</option>
-                {authors.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.full_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="single-field half-field-last">
-              {userDetails.role === "admin" && (
-                <div className="single-field">
-                  <label htmlFor="status">Holati</label>
-                  <select
-                    id="status"
-                    name="status"
-                    className="form-control"
-                    value={formData.status}
-                    onChange={handleChange}
-                  >
-                    <option value="0">Tasdiqlanmagan</option>
-                    <option value="1">Tasdiqlangan</option>
-                  </select>
-                </div>
-              )}
-            </div>
+            {userDetails.role === "admin" && (
+              <div className="single-field half-field">
+                <label
+                  htmlFor="exampleFormControlInput1"
+                  className="form-label"
+                >
+                  Foydalanucvchi
+                </label>
+                <select
+                  className="form-select "
+                  aria-label="Default select example"
+                  name="user_id" // Add name attribute here
+                  onChange={handleChange}
+                  value={formData.user_id} // Set value to control the selected option
+                >
+                  <option value="">Tadbirkorni tanlang</option>
+                  {authors.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {userDetails.role === "admin" && (
+              <div className="single-field half-field-last">
+                <label htmlFor="status">Holati</label>
+                <select
+                  id="status"
+                  name="status"
+                  className="form-control"
+                  value={formData.status}
+                  onChange={handleChange}
+                >
+                  <option value="0">Tasdiqlanmagan</option>
+                  <option value="1">Tasdiqlangan</option>
+                </select>
+              </div>
+            )}
             <div className="single-field ">
               <button className="btn btn-success px-3 mt-5" type="submit">
                 Yaratish

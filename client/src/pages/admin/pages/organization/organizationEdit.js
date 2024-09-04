@@ -59,18 +59,12 @@ const OrganizationEdit = ({
     const formData = new FormData();
     formData.append("inn_pinfl", editOrganization.inn_pinfl);
     formData.append("org_name", editOrganization.org_name);
-    formData.append("reg_code_nds", editOrganization.reg_code_nds);
     formData.append("address", editOrganization.address);
     formData.append("phone", editOrganization.phone);
-    formData.append("main_rc", editOrganization.main_rc);
     formData.append("mfo", editOrganization.mfo);
     formData.append("region_id", editOrganization.region_id);
     formData.append("district_id", editOrganization.district_id);
-    formData.append("oked", editOrganization.oked);
     formData.append("director_name", editOrganization.director_name);
-    formData.append("director_pinfl", editOrganization.director_pinfl);
-    formData.append("chief_accountant", editOrganization.chief_accountant);
-    formData.append("goods_issued_by", editOrganization.goods_issued_by);
     formData.append("excise_tax", editOrganization.excise_tax);
     formData.append("status", editOrganization.status);
     formData.append("user_id", editOrganization.user_id); // Ensure user_id is included
@@ -147,20 +141,6 @@ const OrganizationEdit = ({
                 required
               />
             </div>
-            <div className="single-field half-field">
-              <input
-                type="text"
-                name="reg_code_nds"
-                placeholder="NDS kodi"
-                value={editOrganization.reg_code_nds}
-                onChange={(e) =>
-                  setEditOrganization({
-                    ...editOrganization,
-                    reg_code_nds: e.target.value,
-                  })
-                }
-              />
-            </div>
             <div className="single-field half-field-last">
               <input
                 type="text"
@@ -185,20 +165,6 @@ const OrganizationEdit = ({
                   setEditOrganization({
                     ...editOrganization,
                     phone: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="single-field half-field-last">
-              <input
-                type="text"
-                name="main_rc"
-                placeholder="Asosiy R/C"
-                value={editOrganization.main_rc}
-                onChange={(e) =>
-                  setEditOrganization({
-                    ...editOrganization,
-                    main_rc: e.target.value,
                   })
                 }
               />
@@ -259,20 +225,6 @@ const OrganizationEdit = ({
             <div className="single-field half-field">
               <input
                 type="text"
-                name="oked"
-                placeholder="OKED"
-                value={editOrganization.oked}
-                onChange={(e) =>
-                  setEditOrganization({
-                    ...editOrganization,
-                    oked: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="single-field half-field-last">
-              <input
-                type="text"
                 name="director_name"
                 placeholder="Direktor FIO"
                 value={editOrganization.director_name}
@@ -280,48 +232,6 @@ const OrganizationEdit = ({
                   setEditOrganization({
                     ...editOrganization,
                     director_name: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="single-field half-field">
-              <input
-                type="text"
-                name="director_pinfl"
-                placeholder="Direktor PINFL"
-                value={editOrganization.director_pinfl}
-                onChange={(e) =>
-                  setEditOrganization({
-                    ...editOrganization,
-                    director_pinfl: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="single-field half-field-last">
-              <input
-                type="text"
-                name="chief_accountant"
-                placeholder="Bosh xisobchi"
-                value={editOrganization.chief_accountant}
-                onChange={(e) =>
-                  setEditOrganization({
-                    ...editOrganization,
-                    chief_accountant: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="single-field half-field">
-              <input
-                type="text"
-                name="goods_issued_by"
-                placeholder="Kontakt ma'lumotlari"
-                value={editOrganization.goods_issued_by}
-                onChange={(e) =>
-                  setEditOrganization({
-                    ...editOrganization,
-                    goods_issued_by: e.target.value,
                   })
                 }
               />

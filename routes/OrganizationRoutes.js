@@ -8,18 +8,12 @@ router.post("/add_organization", (req, res) => {
   const {
     inn_pinfl,
     org_name,
-    reg_code_nds,
     address,
     phone,
-    main_rc,
     mfo,
     region_id,
     district_id,
-    oked,
     director_name,
-    director_pinfl,
-    chief_accountant,
-    goods_issued_by,
     excise_tax,
     user_id,
     notification_id,
@@ -35,11 +29,11 @@ router.post("/add_organization", (req, res) => {
   const sql = `
   INSERT INTO organization_details 
   (
-    user_id, inn_pinfl, org_name, reg_code_nds, address, phone, 
-    main_rc, mfo, region_id, district_id, oked, director_name, director_pinfl, 
-    chief_accountant, goods_issued_by, excise_tax, notification_id, status
+    user_id, inn_pinfl, org_name, address, phone, 
+   mfo, region_id, district_id, director_name, 
+   excise_tax, notification_id, status
   ) 
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
   DB.query(
@@ -48,18 +42,12 @@ router.post("/add_organization", (req, res) => {
       user_id,
       inn_pinfl,
       org_name,
-      reg_code_nds,
       address,
       phone,
-      main_rc,
       mfo,
       region_id,
       district_id,
-      oked,
       director_name,
-      director_pinfl,
-      chief_accountant,
-      goods_issued_by,
       excise_tax,
       notification_id, // Use null if notification_id is not provided
       status,
@@ -121,18 +109,12 @@ router.put("/organizations/:id", (req, res) => {
   const {
     inn_pinfl,
     org_name,
-    reg_code_nds,
     address,
     phone,
-    main_rc,
     mfo,
     region_id,
     district_id,
-    oked,
     director_name,
-    director_pinfl,
-    chief_accountant,
-    goods_issued_by,
     excise_tax,
     status,
   } = req.body;
@@ -140,19 +122,13 @@ router.put("/organizations/:id", (req, res) => {
   const sql = `
     UPDATE organization_details SET 
       inn_pinfl = ?, 
-      org_name = ?, 
-      reg_code_nds = ?, 
+      org_name = ?,  
       address = ?, 
       phone = ?, 
-      main_rc = ?, 
       mfo = ?, 
       region_id = ?, 
       district_id = ?, 
-      oked = ?, 
       director_name = ?, 
-      director_pinfl = ?, 
-      chief_accountant = ?, 
-      goods_issued_by = ?, 
       excise_tax = ?,
       status = ? 
     WHERE id = ?
@@ -161,18 +137,12 @@ router.put("/organizations/:id", (req, res) => {
   const params = [
     inn_pinfl,
     org_name,
-    reg_code_nds,
     address,
     phone,
-    main_rc,
     mfo,
     region_id,
     district_id,
-    oked,
     director_name,
-    director_pinfl,
-    chief_accountant,
-    goods_issued_by,
     excise_tax,
     status,
     organizationId,

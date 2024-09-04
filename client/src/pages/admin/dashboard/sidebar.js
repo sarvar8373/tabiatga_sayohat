@@ -87,7 +87,7 @@ export default function Sidebar() {
         </Link>
       </li>
       <hr className="sidebar-divider" />
-      {userDetails.role === "user" && (
+      {/* {userDetails.role === "user" && (
         <li className="nav-item ">
           <Link className="nav-link" to="./organization">
             <i className="fas fa-fw fa-building"></i>
@@ -95,10 +95,10 @@ export default function Sidebar() {
           </Link>
           <hr className="sidebar-divider" />
         </li>
-      )}
+      )} */}
 
       <div className="sidebar-heading">Admin</div>
-      {["admin", "region", "district"].includes(userDetails.role) && (
+      {["admin", "region", "district", "user"].includes(userDetails.role) && (
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -121,12 +121,16 @@ export default function Sidebar() {
             data-parent="#accordionSidebar"
           >
             <div className="bg-dark py-2 collapse-inner rounded">
-              <Link
-                className="collapse-item text-secondary"
-                to="./organization-add"
-              >
-                Tashkilotlar qo'shish
-              </Link>
+              {["admin", "user"].includes(userDetails.role) && (
+                <div>
+                  <Link
+                    className="collapse-item text-secondary"
+                    to="./organization-add"
+                  >
+                    Tashkilotlar qo'shish
+                  </Link>
+                </div>
+              )}
               <Link
                 className="collapse-item text-secondary"
                 to="./organization-list"
