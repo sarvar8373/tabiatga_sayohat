@@ -10,8 +10,10 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [filterOrders, setFilterOrders] = useState([]);
   const [users, setUsers] = useState({});
+  const [userPhone, setUserPhone] = useState({});
   const [allUsers, setAllUsers] = useState({});
   const [tours, setTours] = useState({});
+  const [tourPrice, setTourPrice] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,24 +48,30 @@ export default function Orders() {
           );
           const tourResponses = await Promise.all(tourPromises);
           const tourMap = {};
+          const tourPrice = {};
           tourResponses.forEach((res) => {
             if (res.data.Status) {
               tourMap[res.data.Result.id] = res.data.Result.title;
+              tourPrice[res.data.Result.id] = res.data.Result.price;
             }
           });
           setTours(tourMap);
+          setTourPrice(tourPrice);
           // Fetch user details for each order
           const userPromises = response.data.Result.map((order) =>
             axios.get(`${BASE_URL}/auth/user/${order.user_id}`)
           );
           const userResponses = await Promise.all(userPromises);
           const userMap = {};
+          const userPhone = {};
           userResponses.forEach((res) => {
             if (res.data.Status) {
               userMap[res.data.Result.id] = res.data.Result.full_name;
+              userPhone[res.data.Result.id] = res.data.Result.phone_number;
             }
           });
           setUsers(userMap);
+          setUserPhone(userPhone);
         } else {
           setError(response.data.Error || "Failed to fetch orders.");
         }
@@ -184,6 +192,7 @@ export default function Orders() {
                       style={{ width: "50%" }}
                     />
                   </th>
+                  <th>Telefon raqam</th>
                   <th>Maskan nomi</th>
                   <th>Soni</th>
                   <th>Narxi</th>
@@ -194,11 +203,11 @@ export default function Orders() {
                 {currentPosts.map((order) => (
                   <tr key={order.id}>
                     <td>{order.id}</td>
-                    <td>{users[order.user_id]}</td>{" "}
-                    {/* Display user full name */}
+                    <td>{users[order.user_id]}</td>
+                    <td>{userPhone[order.user_id]}</td>
                     <td>{tours[order.tour_id]}</td>
                     <td>{order.quantity}</td>
-                    <td>{order.total_price}</td>
+                    <td>{tourPrice[order.tour_id]}</td>
                     <td className="d-flex justify-content-between">
                       <button className="btn btn-danger" disabled>
                         {order && order.status === "pending" ? (
