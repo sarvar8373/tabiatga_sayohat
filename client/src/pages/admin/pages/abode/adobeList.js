@@ -152,7 +152,7 @@ export default function AdobeList() {
             matchesTitle &&
             matchesRegion &&
             matchesPrice &&
-            post.user_id === userDetails.user_id
+            post.user_id === userDetails.id
           );
         }
       }

@@ -37,6 +37,7 @@ export default function Organization() {
     chief_accountant: "",
     goods_issued_by: "",
     excise_tax: "",
+    notification_id: "",
     user_id: userDetails.id,
     status: "0",
   });
@@ -152,14 +153,20 @@ export default function Organization() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await postOrganization(formData);
+      const notificationResponse = await postNotification({
+        user_id: formData.user_id,
+        message: `Tashkilot: ${formData.org_name}`,
+        type: formData.status,
+      });
+
+      const notificationId = notificationResponse.data.Result;
+      console.log("Notification ID:", notificationId);
+
+      const response = await postOrganization({
+        ...formData,
+        notification_id: notificationId, // Ensure this is passed correctly
+      });
       if (response.data.Status) {
-        const notification = {
-          user_id: formData.user_id,
-          message: `Yangi tashkilot: ${formData.org_name}`,
-          type: formData.status, // Ensure status value is correctly set here
-        };
-        await postNotification(notification);
         alert("Tashkilot qo'shildi!");
         setSaved(true);
       } else {

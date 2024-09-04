@@ -78,31 +78,38 @@ export default function AdobeEdit({
 
     if (editadobe.images instanceof FileList) {
       Array.from(editadobe.images).forEach((file) => {
-        formData.append("images", file); // Append all images
+        formData.append("images", file);
       });
     } else if (Array.isArray(editadobe.images)) {
       editadobe.images.forEach((file, index) => {
-        formData.append(`images[${index}]`, file); // Append all images
+        formData.append(`images[${index}]`, file);
       });
     }
 
-    // Update tour
+    // Update the tour
     putTour(editadobe.id, formData)
       .then((result) => {
         if (result.data.Status) {
-          // Update notification if status has changed
-          if (notificationStatus !== formData.status) {
+          console.log(
+            "Current Status:",
+            formData.get("status"),
+            "Notification Status:",
+            notificationStatus
+          );
+
+          if (formData.get("status") === notificationStatus) {
             // Create notification object
             const notification = {
-              user_id: userDetails.id, // Pass the user ID if required
-              message: `Maskan o'zgartirildi ${editadobe.title}`, // Make sure to use template literals correctly
-              type: editadobe.status,
+              user_id: editadobe.user_id,
+              message: `Maskan: ${editadobe.title}`,
+              type: editadobe.status, // Use the updated status from formData
             };
 
             // Update the notification using its ID
             editNotification(editadobe.notification_id, notification)
               .then((notificationResult) => {
                 console.log("Notification updated:", notificationResult.data);
+                setNotificationStatus(formData.get("status")); // Update local status state
                 onSave(result.data.Result); // Call onSave after successful update
               })
               .catch((error) => {

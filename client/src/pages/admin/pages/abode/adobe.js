@@ -146,7 +146,7 @@ const Adobe = () => {
 
     const notification = {
       user_id: userDetails.id,
-      message: `Yangi Maskan: ${formData.title}`,
+      message: `Maskan: ${formData.title}`,
       type: formData.status,
     };
 

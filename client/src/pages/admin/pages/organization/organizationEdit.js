@@ -84,7 +84,7 @@ const OrganizationEdit = ({
           if (formData.get("status") !== originalStatus) {
             const notification = {
               user_id: editOrganization.user_id, // Pass the user ID if required
-              message: `Tashkilot o'zgartirildi ${editOrganization.org_name}`,
+              message: `Tashkilot: ${editOrganization.org_name}`,
               type: editOrganization.status,
             };
 

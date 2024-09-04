@@ -83,18 +83,15 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
           navigate("/dashboard");
           handleClose(); // Close the modal on successful order
         } else {
-          setError(
-            "Failed to place the order. Status: " + orderResponse.status
-          );
+          setError("Xatolik yuz berdi. Status: " + orderResponse.status);
         }
       } else {
-        setError("Failed to log in. No token received.");
+        setError("Tizimga kirishda telefon yoki parol xato.");
       }
     } catch (err) {
       console.error("Error details:", err);
       setError(
-        "Failed to place the order. " +
-          (err.response?.data?.Error || "Unknown error")
+        "Xatolik yuz berdi. " + (err.response?.data?.Error || "Unknown error")
       );
     } finally {
       setLoading(false);
@@ -115,16 +112,16 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
       <Modal.Header closeButton>
         <Modal.Title>
           {step === 1
-            ? "Enter Your Phone Number"
+            ? "Raqamingizni kiriting"
             : isExistingUser
             ? "Login"
-            : "Create Account"}
+            : "Akkaunt ochish"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
           {step === 1 && (
-            <Form.Group controlId="phoneNumber">
+            <Form.Group controlId="Telefon raqam">
               <Form.Control
                 type="tel"
                 placeholder="+998"
@@ -141,7 +138,7 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
                 <Form.Group controlId="fullName">
                   <Form.Control
                     type="text"
-                    placeholder="Full Name"
+                    placeholder="FIO *"
                     onChange={(e) => setFull_name(e.target.value)}
                     required
                   />
@@ -150,7 +147,7 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
               <Form.Group controlId="password">
                 <Form.Control
                   type="password"
-                  placeholder="Password"
+                  placeholder="Parol"
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
@@ -169,17 +166,17 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
                     role="status"
                     aria-hidden="true"
                   />{" "}
-                  Loading...
+                  Yuklanmoqda...
                 </>
               ) : step === 1 ? (
-                "Next"
+                "Keyingisi"
               ) : (
-                "Place Order"
+                "Bron qilish"
               )}
             </Button>
             {step === 2 && (
               <Button variant="secondary" onClick={handleClose}>
-                Close
+                Yopish
               </Button>
             )}
           </Modal.Footer>

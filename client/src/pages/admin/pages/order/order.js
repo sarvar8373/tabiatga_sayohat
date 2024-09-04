@@ -33,9 +33,15 @@ export default function Orders() {
       try {
         const response = await axios.get(`${BASE_URL}/orders/orders`);
         if (response.data.Status) {
-          setOrders(response.data.Result);
-          setFilterOrders(response.data.Result);
-          const tourPromises = response.data.Result.map((order) =>
+          const orders =
+            userDetails.role === "admin"
+              ? response.data.Result
+              : response.data.Result.filter(
+                  (orders) => orders.user_id === userDetails.id
+                );
+          setOrders(orders);
+          setFilterOrders(orders);
+          const tourPromises = orders.map((order) =>
             axios.get(`${BASE_URL}/tours/tour/${order.tour_id}`)
           );
           const tourResponses = await Promise.all(tourPromises);

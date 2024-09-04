@@ -141,7 +141,7 @@ export default function OrganizationAdd() {
     try {
       const notificationResponse = await postNotification({
         user_id: formData.user_id,
-        message: `Yangi tashkilot: ${formData.org_name}`,
+        message: `Tashkilot: ${formData.org_name}`,
         type: formData.status,
       });
 

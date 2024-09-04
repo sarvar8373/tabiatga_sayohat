@@ -18,7 +18,12 @@ export default function Navbar() {
     getNotification()
       .then((notificationResult) => {
         if (notificationResult.data.Status) {
-          const newNotifications = notificationResult.data.Result;
+          const newNotifications =
+            userDetails.role === "admin"
+              ? notificationResult.data.Result
+              : notificationResult.data.Result.filter(
+                  (notification) => notification.user_id === userDetails.id
+                );
           setNotifications(newNotifications);
           setNotificationCount(newNotifications.length);
         } else {

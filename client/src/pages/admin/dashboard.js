@@ -55,15 +55,7 @@ export default function Dashboard() {
                   />
                 }
               />
-              <Route
-                path="/notification"
-                element={
-                  <ProtectedRoute
-                    requiredRole={["admin", "region", "district"]}
-                    element={<Notification />}
-                  />
-                }
-              />
+              <Route path="/notification" element={<Notification />} />
               <Route
                 path="/organization-list"
                 element={
