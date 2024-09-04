@@ -5,6 +5,7 @@ import SearchItem from "../../../../components/search-item/searchItem";
 import debounce from "lodash/debounce";
 import { useAuth } from "../../../../context/AuthContext";
 import { getUsers } from "../../../../http/usersApi";
+import { deleteOrder, getOrder } from "../../../../http/orderApi";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -33,7 +34,7 @@ export default function Orders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/orders/orders`);
+        const response = await getOrder();
         if (response.data.Status) {
           const orders =
             userDetails.role === "admin"
@@ -96,8 +97,17 @@ export default function Orders() {
       })
       .catch((err) => console.log(err));
   }, []);
-  const handleDelete = (id) => {
-    // Implement delete functionality
+  const handleDelete = (ordersId) => {
+    deleteOrder(ordersId)
+      .then((result) => {
+        if (result.data.Status) {
+          setOrders(orders.filter((c) => c.id !== ordersId));
+          setFilterOrders(filterOrders.filter((c) => c.id !== ordersId));
+        } else {
+          alert(result.data.Error);
+        }
+      })
+      .catch((err) => console.log(err));
   };
   const handleSearch = useCallback(() => {
     const authorSearchTerm = searchTerm.trim().toLowerCase();

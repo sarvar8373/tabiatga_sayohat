@@ -124,8 +124,10 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
             <Form.Group controlId="Telefon raqam">
               <Form.Control
                 type="tel"
-                placeholder="+998"
+                id="phoneNumber"
+                name="phoneNumber"
                 pattern="[+]{1}[9]{1}[9]{1}[8]{1}[0-9]{9}"
+                placeholder="+998"
                 onChange={(e) => setPhone_number(e.target.value)}
                 onBlur={handlePhoneNumberCheck}
                 required
