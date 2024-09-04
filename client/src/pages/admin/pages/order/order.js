@@ -4,7 +4,7 @@ import { BASE_URL } from "../../../../api/host/host";
 import SearchItem from "../../../../components/search-item/searchItem";
 import debounce from "lodash/debounce";
 import { useAuth } from "../../../../context/AuthContext";
-import { getUsers } from "../../../../http/usersApi";
+import { getUserID, getUsers } from "../../../../http/usersApi";
 import { deleteOrder, getOrder } from "../../../../http/orderApi";
 
 export default function Orders() {
@@ -60,7 +60,7 @@ export default function Orders() {
           setTourPrice(tourPrice);
           // Fetch user details for each order
           const userPromises = response.data.Result.map((order) =>
-            axios.get(`${BASE_URL}/auth/user/${order.user_id}`)
+            getUserID(order.user_id)
           );
           const userResponses = await Promise.all(userPromises);
           const userMap = {};

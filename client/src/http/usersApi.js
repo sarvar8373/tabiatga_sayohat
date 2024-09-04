@@ -10,6 +10,17 @@ export function getUsers() {
     withCredentials: true,
   });
 }
+
+export function getAuth() {
+  return AxiosClient.get("auth/check", {
+    withCredentials: true,
+  });
+}
+export function getUserID(id) {
+  return AxiosClient.get(`/auth/user/${id}`, {
+    withCredentials: true,
+  });
+}
 export function postLogin(credentials) {
   return AxiosClient.post("/auth/login", credentials);
 }
