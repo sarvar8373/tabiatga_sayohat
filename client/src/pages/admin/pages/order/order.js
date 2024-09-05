@@ -162,7 +162,7 @@ export default function Orders() {
     }
     setEditMode(false);
   };
-  const handleEdit = (order) => {
+  const handleView = (order) => {
     if (order) {
       setSelectedOrder(order);
       setEditMode(true);
@@ -228,10 +228,10 @@ export default function Orders() {
                       </button>
                       <div>
                         <button
-                          onClick={() => handleEdit(order)}
-                          className="btn btn-warning mx-3"
+                          onClick={() => handleView(order)}
+                          className="btn btn-primary mx-3"
                         >
-                          <i className="fas fa-edit"></i>
+                          <i className="fas fa-eye"></i>
                         </button>
                         <button
                           onClick={() => handleDelete(order.id)}

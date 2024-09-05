@@ -60,7 +60,7 @@ export default function Dashboard() {
                 path="/organization-list"
                 element={
                   <ProtectedRoute
-                    requiredRole={["admin", "region", "district"]}
+                    requiredRole={["admin", "region", "district", "user"]}
                     element={<OrganizationList />}
                   />
                 }

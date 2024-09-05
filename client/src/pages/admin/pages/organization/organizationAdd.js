@@ -10,6 +10,7 @@ import { postNotification } from "../../../../http/notificationApi";
 
 export default function OrganizationAdd() {
   const [regions, setRegions] = useState([]);
+  const { userDetails } = useAuth();
   const [districts, setDistricts] = useState([]);
   const [error, setError] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
@@ -19,17 +20,17 @@ export default function OrganizationAdd() {
     inn_pinfl: "",
     org_name: "",
     address: "",
-    phone: "",
+    phone: userDetails.phone_number || "",
     mfo: "",
-    region_id: "",
-    district_id: "",
+    region_id: userDetails.region_id || "",
+    district_id: userDetails.district_id || "",
     director_name: "",
     excise_tax: "",
     notification_id: "",
     user_id: "",
     status: "0",
   });
-  const { userDetails } = useAuth();
+
   const [authors, setAuthors] = useState([]);
 
   useEffect(() => {
@@ -157,10 +158,10 @@ export default function OrganizationAdd() {
           inn_pinfl: "",
           org_name: "",
           address: "",
-          phone: "",
+          phone: userDetails.phone_number || "",
           mfo: "",
-          region_id: "",
-          district_id: "",
+          region_id: userDetails.region_id || "",
+          district_id: userDetails.district_id || "",
           director_name: "",
           excise_tax: "",
           notification_id: "",
@@ -336,8 +337,10 @@ export default function OrganizationAdd() {
                   value={formData.status}
                   onChange={handleChange}
                 >
-                  <option value="0">Tasdiqlanmagan</option>
-                  <option value="1">Tasdiqlangan</option>
+                  <option value="0">Jarayonda</option>
+                  <option value="2">Bekor qilish</option>
+                  <option value="3">Qayta yuborish</option>
+                  <option value="1">Tasdiqlandi</option>
                 </select>
               </div>
             )}

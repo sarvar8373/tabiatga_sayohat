@@ -69,14 +69,14 @@ export default function Sidebar() {
       }`}
       id="accordionSidebar"
     >
-      <Link
+      <a
         className="sidebar-brand d-flex align-items-center justify-content-center"
-        to="./"
+        href="/"
       >
         <div className="sidebar-brand-text">
           <img src="/img/logo.png" alt="GENE" />
         </div>
-      </Link>
+      </a>
 
       <hr className="sidebar-divider my-0" />
 

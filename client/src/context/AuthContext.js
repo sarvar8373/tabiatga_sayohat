@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { BASE_URL } from "../api/host/host";
 import Cookies from "js-cookie";
-import { getAuth, getUserDetails } from "../http/usersApi";
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -21,11 +21,17 @@ export const AuthProvider = ({ children }) => {
 
       try {
         // Check if the user is authenticated
-        const checkResult = getAuth();
+        const checkResult = await axios.get(`${BASE_URL}/auth/check`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        });
 
         if (checkResult.data.isAuthenticated) {
           // Fetch user details if authenticated
-          const userResult = await getUserDetails();
+          const userResult = await axios.get(`${BASE_URL}/auth/user`, {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          });
 
           if (userResult.data.Status) {
             setUserDetails(userResult.data);

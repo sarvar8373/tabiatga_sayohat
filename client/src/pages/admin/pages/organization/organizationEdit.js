@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { putOrganization } from "../../../../http/organizationApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { editNotification } from "../../../../http/notificationApi";
+import { getSelectRegion } from "../../../../http/usersApi";
 
 const OrganizationEdit = ({
   organization,
@@ -11,12 +11,12 @@ const OrganizationEdit = ({
   onSave,
   onCancel,
 }) => {
-  const navigate = useNavigate();
   const { userDetails } = useAuth();
   const [editOrganization, setEditOrganization] = useState(organization);
-  const [loading, setLoading] = useState(true);
   const [originalStatus, setOriginalStatus] = useState(editOrganization.status);
   const [filteredRegions, setFilteredRegions] = useState(regions);
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const [filteredDistricts, setFilteredDistricts] = useState(districts);
   const [error, setError] = useState(null);
 
@@ -24,6 +24,8 @@ const OrganizationEdit = ({
     if (organization) {
       setEditOrganization(organization);
       setOriginalStatus(organization.status);
+      setSelectedRegion(organization.region_id || "");
+      setSelectedDistrict(organization.district_id || "");
     }
   }, [organization]);
 
@@ -32,23 +34,61 @@ const OrganizationEdit = ({
       setFilteredRegions(
         regions.filter((region) => region.id === userDetails.region_id)
       );
+      setSelectedRegion(userDetails.region_id);
+      setFilteredDistricts([]);
     } else if (userDetails.role === "district" && userDetails.region_id) {
       setFilteredRegions(
         regions.filter((region) => region.id === userDetails.region_id)
       );
-      setFilteredDistricts(
-        districts.filter((district) => district.id === userDetails.district_id)
-      );
-      setEditOrganization((prev) => ({
-        ...prev,
-        region_id: userDetails.region_id,
-        district_id: userDetails.district_id,
-      }));
+
+      getSelectRegion(userDetails.region_id)
+        .then((response) => {
+          if (response.data.Status) {
+            const filteredDistricts = response.data.Result.filter(
+              (district) => district.id === userDetails.district_id
+            );
+            setFilteredDistricts(filteredDistricts);
+
+            setEditOrganization((prev) => ({
+              ...prev,
+              region_id: userDetails.region_id,
+              district_id: userDetails.district_id,
+            }));
+
+            setSelectedRegion(userDetails.region_id);
+            setSelectedDistrict(userDetails.district_id);
+          } else {
+            setError(response.data.Error);
+          }
+        })
+        .catch((err) => {
+          setError("Error fetching districts.");
+          console.error(err);
+        });
     } else {
       setFilteredRegions(regions);
       setFilteredDistricts(districts);
     }
   }, [regions, districts, userDetails]);
+
+  useEffect(() => {
+    if (selectedRegion) {
+      getSelectRegion(selectedRegion)
+        .then((response) => {
+          if (response.data.Status) {
+            setFilteredDistricts(response.data.Result);
+          } else {
+            setError(response.data.Error);
+          }
+        })
+        .catch((err) => {
+          setError("Error fetching districts.");
+          console.error(err);
+        });
+    } else {
+      setFilteredDistricts([]);
+    }
+  }, [selectedRegion]);
 
   const handleUpdate = () => {
     if (!editOrganization || !editOrganization.id) {
@@ -74,19 +114,17 @@ const OrganizationEdit = ({
         if (result.data.Status) {
           console.log(result.data.Result);
 
-          // Check if the status has changed
-          if (formData.get("status") !== originalStatus) {
+          if (editOrganization.status !== originalStatus) {
             const notification = {
-              user_id: editOrganization.user_id, // Pass the user ID if required
+              user_id: editOrganization.user_id,
               message: `Tashkilot: ${editOrganization.org_name}`,
               type: editOrganization.status,
             };
 
-            // Pass the organization ID to editNotification
             editNotification(editOrganization.notification_id, notification)
               .then((notificationResult) => {
                 console.log("Notification updated:", notificationResult.data);
-                onSave(result.data.Result); // Call onSave after successful update
+                onSave(result.data.Result);
               })
               .catch((error) => {
                 console.error("Error updating notification:", error);
@@ -96,7 +134,7 @@ const OrganizationEdit = ({
             onSave(result.data.Result);
           }
         } else {
-          alert(result.data.Error || "An error occurred while updating.");
+          alert("iltimos viloyatni ham tanlang");
         }
       })
       .catch((err) => {
@@ -187,14 +225,36 @@ const OrganizationEdit = ({
               <select
                 id="region_id"
                 className="form-control"
-                value={editOrganization.region_id}
-                onChange={(e) =>
-                  setEditOrganization({
-                    ...editOrganization,
-                    region_id: e.target.value,
-                  })
-                }
+                value={editOrganization.region_id || ""}
+                onChange={(e) => {
+                  const selectedRegionId = e.target.value;
+                  setEditOrganization((prev) => ({
+                    ...prev,
+                    region_id: selectedRegionId,
+                    district_id: "",
+                  }));
+
+                  if (selectedRegionId) {
+                    getSelectRegion(selectedRegionId)
+                      .then((response) => {
+                        if (response.data.Status) {
+                          setFilteredDistricts(response.data.Result);
+                        } else {
+                          setFilteredDistricts([]);
+                          setError(response.data.Error);
+                        }
+                      })
+                      .catch((err) => {
+                        setFilteredDistricts([]);
+                        setError("Error fetching districts.");
+                        console.error(err);
+                      });
+                  } else {
+                    setFilteredDistricts([]);
+                  }
+                }}
               >
+                <option value="">Viloyatni tanlang</option>
                 {filteredRegions.map((region) => (
                   <option key={region.id} value={region.id}>
                     {region.name}
@@ -206,22 +266,27 @@ const OrganizationEdit = ({
               <select
                 id="district_id"
                 className="form-control"
-                value={editOrganization.district_id}
+                value={editOrganization.district_id || ""}
                 onChange={(e) =>
-                  setEditOrganization({
-                    ...editOrganization,
+                  setEditOrganization((prev) => ({
+                    ...prev,
                     district_id: e.target.value,
-                  })
+                  }))
                 }
                 disabled={!editOrganization.region_id}
               >
-                {filteredDistricts.map((district) => (
-                  <option key={district.id} value={district.id}>
-                    {district.name}
-                  </option>
-                ))}
+                {filteredDistricts.length > 0 ? (
+                  filteredDistricts.map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Tumman topilmadi</option>
+                )}
               </select>
             </div>
+
             <div className="single-field half-field">
               <input
                 type="text"
@@ -265,8 +330,10 @@ const OrganizationEdit = ({
                       })
                     }
                   >
-                    <option value="0">Tasdiqlanmagan</option>
-                    <option value="1">Tasdiqlangan</option>
+                    <option value="0">Jarayonda</option>
+                    <option value="2">Bekor qilish</option>
+                    <option value="3">Qayta yuborish</option>
+                    <option value="1">Tasdiqlandi</option>
                   </select>
                 </div>
               </div>

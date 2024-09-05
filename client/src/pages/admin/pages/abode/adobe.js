@@ -321,7 +321,9 @@ const Adobe = () => {
                 value={formData.status}
                 onChange={handleChange}
               >
-                <option value="0">Tasdiqlanmagan</option>
+                <option value="0">Jarayonda</option>
+                <option value="2">Bekor qilish</option>
+                <option value="3">Qayta yuborish</option>
                 <option value="1">Tasdiqlangan</option>
               </select>
             </div>

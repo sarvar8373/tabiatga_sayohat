@@ -8,6 +8,7 @@ import debounce from "lodash/debounce";
 import OrganizationEdit from "./organizationEdit";
 import { useAuth } from "../../../../context/AuthContext";
 import SearchItem from "../../../../components/search-item/searchItem";
+import OrganizationView from "./organizationView";
 
 export default function OrganizationList() {
   const [organizations, setOrganizations] = useState([]);
@@ -17,6 +18,7 @@ export default function OrganizationList() {
   const [authors, setAuthors] = useState([]);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState(""); // For title search
   const [searchTerm1, setSearchTerm1] = useState(""); // For category search
   const [searchTerm2, setSearchTerm2] = useState("");
@@ -30,6 +32,7 @@ export default function OrganizationList() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const { userDetails } = useAuth();
+
   useEffect(() => {
     getRegions()
       .then((response) => {
@@ -44,6 +47,7 @@ export default function OrganizationList() {
         console.error(err);
       });
   }, []);
+
   useEffect(() => {
     getDistricts()
       .then((response) => {
@@ -58,6 +62,7 @@ export default function OrganizationList() {
         console.error(err);
       });
   }, []);
+
   useEffect(() => {
     getUsers()
       .then((userResult) => {
@@ -98,6 +103,12 @@ export default function OrganizationList() {
     setSelectedOrganization(organization);
     setShowEditModal(true);
   };
+
+  const handleView = (organization) => {
+    setSelectedOrganization(organization);
+    setShowViewModal(true);
+  };
+
   const handleSearch = useCallback(() => {
     const innSearchTerm = searchTerm.trim().toLowerCase();
     const orgSearchTerm = searchTerm1.trim().toLowerCase();
@@ -158,8 +169,13 @@ export default function OrganizationList() {
     setShowEditModal(false);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseEditModal = () => {
     setShowEditModal(false);
+    setSelectedOrganization(null);
+  };
+
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
     setSelectedOrganization(null);
   };
 
@@ -168,21 +184,26 @@ export default function OrganizationList() {
       handleSearch();
     });
     debouncedSearch();
-    // Cleanup function to cancel debounce on component unmount
     return () => {
       debouncedSearch.cancel();
     };
   }, [handleSearch]);
-
   return (
     <div className="container-fluid px-4">
+      {showViewModal && (
+        <OrganizationView
+          organization={selectedOrganization}
+          onClose={handleCloseViewModal}
+        />
+      )}
+
       {showEditModal ? (
         <OrganizationEdit
           organization={selectedOrganization}
           regions={regions}
           districts={districts}
           onSave={handleSave}
-          onCancel={handleCloseModal}
+          onCancel={handleCloseEditModal}
         />
       ) : (
         <>
@@ -240,22 +261,30 @@ export default function OrganizationList() {
                   <td className="d-flex justify-content-between">
                     <div>
                       {c.status === "0" || c.status === 0 ? (
-                        <button className="btn btn-danger" disabled>
-                          Tasdiqlanmagan
+                        <button className="btn btn-warning" disabled>
+                          Jarayonda
                         </button>
                       ) : (
                         <button className="btn btn-success" disabled>
-                          Tasdiqlangan
+                          Tasdiqlandi
                         </button>
                       )}
                     </div>
                     <div>
                       <button
-                        onClick={() => handleEdit(c)}
-                        className="btn btn-warning mx-3"
+                        onClick={() => handleView(c)}
+                        className="btn btn-primary "
                       >
-                        <i className="fas fa-edit"></i>
+                        <i className="fas fa-eye"></i>
                       </button>
+                      {["admin", "user"].includes(userDetails.role) && (
+                        <button
+                          onClick={() => handleEdit(c)}
+                          className="btn btn-warning mx-3"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(c.id)}
                         className="btn btn-danger"

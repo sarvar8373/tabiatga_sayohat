@@ -9,6 +9,7 @@ import {
   getUsers,
 } from "../../../../http/usersApi";
 import { useAuth } from "../../../../context/AuthContext";
+import UserView from "./userView";
 
 export default function UsersList() {
   const [users, setUsers] = useState([]);
@@ -20,6 +21,7 @@ export default function UsersList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTerm1, setSearchTerm1] = useState("");
   const [searchTerm3, setSearchTerm3] = useState("");
+  const [showViewModal, setShowViewModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm4, setSearchTerm4] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,6 +105,11 @@ export default function UsersList() {
     const district = districts.find((d) => d.id === id);
     return district ? district.name : "";
   };
+  const handleView = (user) => {
+    setSelectedUser(user);
+    setShowViewModal(true);
+  };
+
   // Memoize handleSearch function
   const handleSearch = useCallback(() => {
     const phoneSearchTerm = searchTerm.trim().toLowerCase();
@@ -189,6 +196,10 @@ export default function UsersList() {
     }
     setEditMode(false);
   };
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
+    setSelectedUser(null);
+  };
   // Debounce search function
   useEffect(() => {
     const debouncedSearch = debounce(() => {
@@ -217,6 +228,9 @@ export default function UsersList() {
 
   return (
     <div className="container-fluid px-4">
+      {showViewModal && (
+        <UserView user={selectedUser} onClose={handleCloseViewModal} />
+      )}
       {editMode ? (
         <EditUserForm
           user={selectedUser}
@@ -283,20 +297,37 @@ export default function UsersList() {
                     {roleLabels[c.role] || "Unknown"}
                     <div>
                       {c.role === "admin" ? (
-                        <button
-                          onClick={() => handleEdit(c)}
-                          className="btn btn-warning mx-3"
-                        >
-                          <i className="fas fa-edit"></i>
-                        </button>
-                      ) : (
                         <div>
+                          {" "}
+                          <button
+                            onClick={() => handleView(c)}
+                            className="btn btn-primary "
+                          >
+                            <i className="fas fa-eye"></i>
+                          </button>
                           <button
                             onClick={() => handleEdit(c)}
                             className="btn btn-warning mx-3"
                           >
                             <i className="fas fa-edit"></i>
                           </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <button
+                            onClick={() => handleView(c)}
+                            className="btn btn-primary "
+                          >
+                            <i className="fas fa-eye"></i>
+                          </button>
+
+                          <button
+                            onClick={() => handleEdit(c)}
+                            className="btn btn-warning mx-3"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+
                           <button
                             onClick={() => handleDelete(c.id)}
                             className="btn btn-danger"

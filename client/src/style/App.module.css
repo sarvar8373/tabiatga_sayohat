@@ -1,6 +1,168 @@
 .customLink {
   text-decoration: none;
 }
+
 .font {
-  font-size: 22px !important;
+  font-size: 22px;
+}
+.editProfile {
+  grid-area: editProfile;
+  height: auto; /* Adjusted for responsiveness */
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Align items to the start for better spacing */
+}
+
+.editProfile .header {
+  color: white;
+  position: relative;
+  width: 100%;
+  padding: 20px 10px;
+}
+
+.editProfile .header h1 {
+  color: white;
+  text-align: left;
+  font-size: 19px;
+  font-weight: 100;
+  letter-spacing: 0.5px;
+}
+
+.editProfile .profilePicture {
+  border-radius: 50%;
+  margin-right: 20px;
+  height: 150px;
+  width: 150px;
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(75, 78, 109, 0.3);
+  cursor: pointer;
+}
+
+.editProfile .profilePicture img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.editProfile .profilePicture:after {
+  z-index: 2;
+  background-color: #363b6d;
+  width: 100%;
+  opacity: 0.8;
+  content: "Edit";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s;
+  font-size: 18px;
+  letter-spacing: 1px;
+  height: 50px; /* Default height for the overlay */
+}
+
+.editProfile .profilePicture:hover:after {
+  opacity: 1;
+  height: 100%; /* Expand overlay on hover */
+}
+
+.editProfile .editInfos {
+  width: 100%;
+  margin: 20px 0;
+}
+
+.editProfile .editInfos .profileData {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.editProfile .editInfos .profileData .data-details {
+  margin-bottom: 10px;
+}
+
+.editProfile .editInfos .profileData h5 {
+  margin: 0;
+  font-weight: bold;
+}
+
+.editProfile .editInfos .profileData h4 {
+  margin: 0;
+  color: #363b6d;
+  font-weight: normal;
+}
+
+.editProfile .edit-picture {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.editProfile .edit-picture div {
+  height: 150px;
+  width: 150px;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  background-color: rgba(75, 78, 109, 0.3);
+}
+
+.editProfile .edit-picture div img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.editProfile .edit-picture div.picture:hover:after {
+  content: "Delete";
+  background-color: rgba(75, 78, 109, 0.8);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s;
+  font-size: 18px;
+  letter-spacing: 1px;
+  height: 100%;
+}
+
+.editProfile .edit-picture div.picture-add {
+  background-color: rgba(75, 78, 109, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 30px;
+}
+
+.editProfile .edit-picture div.picture-add:hover {
+  background-color: #363b6d;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1000px) {
+  .grid-container {
+    grid-gap: 0 10px;
+  }
+  .editProfile {
+    flex-direction: column; /* Ensure column layout on smaller screens */
+  }
+}
+
+@media screen and (max-width: 750px) {
+  .grid-container {
+    display: flex;
+    flex-direction: column;
+  }
+  .editProfile {
+    padding: 10px; /* Adjust padding for smaller screens */
+  }
+}
+
+@media screen and (max-width: 550px) {
+  .editProfile {
+    padding: 10px; /* Adjust padding for even smaller screens */
+  }
 }

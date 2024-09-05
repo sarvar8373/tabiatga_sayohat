@@ -3,6 +3,7 @@ import { putTour } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { BASE_URL } from "../../../../api/host/host";
 import { editNotification } from "../../../../http/notificationApi";
+import { getSelectRegion } from "../../../../http/usersApi";
 
 export default function AdobeEdit({
   adobe,
@@ -16,7 +17,10 @@ export default function AdobeEdit({
   const [filteredRegions, setFilteredRegions] = useState(regions);
   const [filteredDistricts, setFilteredDistricts] = useState(districts);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const { userDetails } = useAuth();
+  const [error, setError] = useState(null);
   const [notificationStatus, setNotificationStatus] = useState(
     editadobe.status
   );
@@ -36,25 +40,41 @@ export default function AdobeEdit({
 
   useEffect(() => {
     if (userDetails.role === "region" && userDetails.region_id) {
-      // Filter regions for the "region" role
       setFilteredRegions(
         regions.filter((region) => region.id === userDetails.region_id)
       );
+      setSelectedRegion(userDetails.region_id);
+      setFilteredDistricts([]);
     } else if (userDetails.role === "district" && userDetails.region_id) {
-      // Filter regions and districts for the "district" role
       setFilteredRegions(
         regions.filter((region) => region.id === userDetails.region_id)
       );
-      setFilteredDistricts(
-        districts.filter((district) => district.id === userDetails.district_id)
-      );
-      setEditadobe((prev) => ({
-        ...prev,
-        region_id: userDetails.region_id,
-        district_id: userDetails.district_id,
-      }));
+
+      getSelectRegion(userDetails.region_id)
+        .then((response) => {
+          if (response.data.Status) {
+            const filteredDistricts = response.data.Result.filter(
+              (district) => district.id === userDetails.district_id
+            );
+            setFilteredDistricts(filteredDistricts);
+
+            setEditadobe((prev) => ({
+              ...prev,
+              region_id: userDetails.region_id,
+              district_id: userDetails.district_id,
+            }));
+
+            setSelectedRegion(userDetails.region_id);
+            setSelectedDistrict(userDetails.district_id);
+          } else {
+            setError(response.data.Error);
+          }
+        })
+        .catch((err) => {
+          setError("Error fetching districts.");
+          console.error(err);
+        });
     } else {
-      // Show all regions and districts if not a specific role
       setFilteredRegions(regions);
       setFilteredDistricts(districts);
     }
@@ -222,11 +242,36 @@ export default function AdobeEdit({
           <select
             id="region_id"
             className="form-control"
-            value={editadobe.region_id}
-            onChange={(e) =>
-              setEditadobe({ ...editadobe, region_id: e.target.value })
-            }
+            value={editadobe.region_id || ""}
+            onChange={(e) => {
+              const selectedRegionId = e.target.value;
+              setEditadobe((prev) => ({
+                ...prev,
+                region_id: selectedRegionId,
+                district_id: "",
+              }));
+
+              if (selectedRegionId) {
+                getSelectRegion(selectedRegionId)
+                  .then((response) => {
+                    if (response.data.Status) {
+                      setFilteredDistricts(response.data.Result);
+                    } else {
+                      setFilteredDistricts([]);
+                      setError(response.data.Error);
+                    }
+                  })
+                  .catch((err) => {
+                    setFilteredDistricts([]);
+                    setError("Error fetching districts.");
+                    console.error(err);
+                  });
+              } else {
+                setFilteredDistricts([]);
+              }
+            }}
           >
+            <option value="">Viloyatni tanlang</option>
             {filteredRegions.map((region) => (
               <option key={region.id} value={region.id}>
                 {region.name}
@@ -241,17 +286,24 @@ export default function AdobeEdit({
           <select
             id="district_id"
             className="form-control"
-            value={editadobe.district_id}
+            value={editadobe.district_id || ""}
             onChange={(e) =>
-              setEditadobe({ ...editadobe, district_id: e.target.value })
+              setEditadobe((prev) => ({
+                ...prev,
+                district_id: e.target.value,
+              }))
             }
             disabled={!editadobe.region_id}
           >
-            {filteredDistricts.map((district) => (
-              <option key={district.id} value={district.id}>
-                {district.name}
-              </option>
-            ))}
+            {filteredDistricts.length > 0 ? (
+              filteredDistricts.map((district) => (
+                <option key={district.id} value={district.id}>
+                  {district.name}
+                </option>
+              ))
+            ) : (
+              <option value="">Tumman topilmadi</option>
+            )}
           </select>
         </div>
         {userDetails.role === "admin" && (
@@ -265,8 +317,10 @@ export default function AdobeEdit({
               value={editadobe.status}
               onChange={handleStatusChange}
             >
-              <option value="0">Tasdiqlanmagan</option>
-              <option value="1">Tasdiqlangan</option>
+              <option value="0">Jarayonda</option>
+              <option value="2">Bekor qilish</option>
+              <option value="3">Qayta yuborish</option>
+              <option value="1">Tasdiqlandi</option>
             </select>
           </div>
         )}

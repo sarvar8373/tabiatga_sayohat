@@ -7,6 +7,7 @@ import { getDistricts, getRegions } from "../../../../http/usersApi";
 import { deleteTours, getTours } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { getTourService } from "../../../../http/tourServices";
+import AdobeView from "./adobeView";
 
 export default function AdobeList() {
   const [tours, setTours] = useState([]);
@@ -18,6 +19,7 @@ export default function AdobeList() {
   const [searchTerm1, setSearchTerm1] = useState(""); // For region search
   const [searchTerm2, setSearchTerm2] = useState(""); // For price search
   const [currentPage, setCurrentPage] = useState(1);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [postsPerPage] = useState(10);
   const [selectedAdobe, setSelectedAdobe] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -116,7 +118,14 @@ export default function AdobeList() {
       setEditMode(true);
     }
   };
-
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
+    setSelectedAdobe(null);
+  };
+  const handleView = (adobe) => {
+    setSelectedAdobe(adobe);
+    setShowViewModal(true);
+  };
   const handleSearch = useCallback(() => {
     const titleSearchTerm = searchTerm.trim().toLowerCase();
     const regionSearchTerm = searchTerm1.trim().toLowerCase();
@@ -192,6 +201,9 @@ export default function AdobeList() {
 
   return (
     <div className="container-fluid px-4">
+      {showViewModal && (
+        <AdobeView adobe={selectedAdobe} onClose={handleCloseViewModal} />
+      )}
       {editMode ? (
         <AdobeEdit
           adobe={selectedAdobe}
@@ -249,12 +261,12 @@ export default function AdobeList() {
                   <td>
                     <div>
                       {c.status === "0" || c.status === 0 ? (
-                        <button className="btn btn-danger" disabled>
-                          Tasdiqlanmagan
+                        <button className="btn btn-warning" disabled>
+                          Jarayonda
                         </button>
                       ) : (
                         <button className="btn btn-success" disabled>
-                          Tasdiqlangan
+                          Tasdiqlandi
                         </button>
                       )}
                     </div>
@@ -269,6 +281,12 @@ export default function AdobeList() {
                       />
                     )}
                     <div>
+                      <button
+                        onClick={() => handleView(c)}
+                        className="btn btn-primary "
+                      >
+                        <i className="fas fa-eye"></i>
+                      </button>
                       <button
                         onClick={() => handleEdit(c)}
                         className="btn btn-warning mx-3"

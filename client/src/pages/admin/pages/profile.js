@@ -4,9 +4,8 @@ import {
   getRegions,
   getUserDetails,
 } from "../../../http/usersApi";
-
 export default function Profile() {
-  const [userDetails, setUserDetails] = useState(null);
+  const [userDetails, setUserDetails] = useState("");
   const [auth, setAuth] = useState(false);
   const [regions, setRegions] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -87,26 +86,56 @@ export default function Profile() {
 
   return (
     <div className="container-fluid">
-      <img
-        className="rounded-circle"
-        src="/img/guide/1.png"
-        alt="Profile"
-        width={200}
-        height={200}
-      />
-      {auth ? (
-        <>
-          <h1>{userDetails.full_name}</h1>
-          <div>
-            <p>{userDetails.phone_number}</p>
-            <p>{roleLabel}</p>
-            <p> {getRegionName(userDetails.region_id)}</p>
-            <p> {getDistrictName(userDetails.district_id)}</p>
+      <div className="profile-card js-profile-card">
+        <div className="profile-card__img">
+          <img
+            className="rounded-circle"
+            src="/img/guide/1.png"
+            alt="Profile"
+            width={200}
+            height={200}
+          />
+        </div>
+
+        <div className="profile-card__cnt js-profile-cnt">
+          <div className="profile-card__name">{userDetails.full_name}</div>
+          <div className="profile-card-loc">
+            <span className="profile-card-loc__icon"></span>
+
+            <span className="profile-card-loc__txt"> {roleLabel}</span>
           </div>
-        </>
-      ) : (
-        <p>Yuklanmoqda...</p>
-      )}
+
+          <div className="profile-card-inf">
+            <div className="profile-card-inf__item">
+              <div className="profile-card-inf__title">
+                {userDetails.phone_number}
+              </div>
+              <div className="profile-card-inf__txt">Telefon raqam</div>
+            </div>
+
+            <div className="profile-card-inf__item">
+              <div className="profile-card-inf__title">
+                {getRegionName(userDetails.region_id)}
+              </div>
+              <div className="profile-card-inf__txt">Tuman</div>
+            </div>
+
+            <div className="profile-card-inf__item">
+              <div className="profile-card-inf__title">
+                {getDistrictName(userDetails.district_id)}
+              </div>
+              <div className="profile-card-inf__txt">Viloyat</div>
+            </div>
+          </div>
+
+          <div className="profile-card-ctr">
+            <button className="profile-card__button button--blue js-message-btn">
+              Tahrirlash
+            </button>
+          </div>
+        </div>
+      </div>
+
       {error && <div className="alert alert-danger">{error}</div>}
     </div>
   );

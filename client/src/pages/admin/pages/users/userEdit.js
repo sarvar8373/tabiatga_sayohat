@@ -1,17 +1,83 @@
 import React, { useEffect, useState } from "react";
-import { putUser } from "../../../../http/usersApi";
+import { getSelectRegion, putUser } from "../../../../http/usersApi";
+import { useAuth } from "../../../../context/AuthContext";
 
 const EditUserForm = ({ user, regions, districts, onSave, onCancel }) => {
   const [editUser, setEditUser] = useState(user);
   const [error, setError] = useState("");
   const [role, setRole] = useState("");
-
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [filteredRegions, setFilteredRegions] = useState(regions);
+  const [filteredDistricts, setFilteredDistricts] = useState(districts);
+  const { userDetails } = useAuth();
   useEffect(() => {
     if (user) {
       setEditUser(user);
+      setSelectedRegion(user.region_id || "");
+      setSelectedDistrict(user.district_id || "");
     }
   }, [user]);
+  useEffect(() => {
+    if (userDetails.role === "region" && userDetails.region_id) {
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
+      setSelectedRegion(userDetails.region_id);
+      setFilteredDistricts([]);
+    } else if (userDetails.role === "district" && userDetails.region_id) {
+      setFilteredRegions(
+        regions.filter((region) => region.id === userDetails.region_id)
+      );
 
+      getSelectRegion(userDetails.region_id)
+        .then((response) => {
+          if (response.data.Status) {
+            const filteredDistricts = response.data.Result.filter(
+              (district) => district.id === userDetails.district_id
+            );
+            setFilteredDistricts(filteredDistricts);
+
+            setEditUser((prev) => ({
+              ...prev,
+              region_id: userDetails.region_id,
+              district_id: userDetails.district_id,
+            }));
+
+            setSelectedRegion(userDetails.region_id);
+            setSelectedDistrict(userDetails.district_id);
+          } else {
+            setError(response.data.Error);
+          }
+        })
+        .catch((err) => {
+          setError("Error fetching districts.");
+          console.error(err);
+        });
+    } else {
+      setFilteredRegions(regions);
+      setFilteredDistricts(districts);
+    }
+  }, [regions, districts, userDetails]);
+
+  useEffect(() => {
+    if (selectedRegion) {
+      getSelectRegion(selectedRegion)
+        .then((response) => {
+          if (response.data.Status) {
+            setFilteredDistricts(response.data.Result);
+          } else {
+            setError(response.data.Error);
+          }
+        })
+        .catch((err) => {
+          setError("Error fetching districts.");
+          console.error(err);
+        });
+    } else {
+      setFilteredDistricts([]);
+    }
+  }, [selectedRegion]);
   const handleUpdate = () => {
     if (!editUser || !editUser.id) {
       alert("Foydalanuvchi ma'lumotlari noto'g'ri kiritilgan.");
@@ -89,15 +155,39 @@ const EditUserForm = ({ user, regions, districts, onSave, onCancel }) => {
       <div className="single-field">
         <label htmlFor="region">Viloyat</label>
         <select
-          id="region"
-          value={editUser.region_id}
-          onChange={(e) =>
-            setEditUser({ ...editUser, region_id: e.target.value })
-          }
+          id="region_id"
           className="form-control"
+          value={editUser.region_id || ""}
+          onChange={(e) => {
+            const selectedRegionId = e.target.value;
+            setEditUser((prev) => ({
+              ...prev,
+              region_id: selectedRegionId,
+              district_id: "",
+            }));
+
+            if (selectedRegionId) {
+              getSelectRegion(selectedRegionId)
+                .then((response) => {
+                  if (response.data.Status) {
+                    setFilteredDistricts(response.data.Result);
+                  } else {
+                    setFilteredDistricts([]);
+                    setError(response.data.Error);
+                  }
+                })
+                .catch((err) => {
+                  setFilteredDistricts([]);
+                  setError("Error fetching districts.");
+                  console.error(err);
+                });
+            } else {
+              setFilteredDistricts([]);
+            }
+          }}
         >
-          <option value="">Viloyatni tanlash</option>
-          {regions.map((region) => (
+          <option value="">Viloyatni tanlang</option>
+          {filteredRegions.map((region) => (
             <option key={region.id} value={region.id}>
               {region.name}
             </option>
@@ -107,20 +197,26 @@ const EditUserForm = ({ user, regions, districts, onSave, onCancel }) => {
       <div className="single-field">
         <label htmlFor="district">Tuman</label>
         <select
-          id="district"
-          value={editUser.district_id}
-          onChange={(e) =>
-            setEditUser({ ...editUser, district_id: e.target.value })
-          }
+          id="district_id"
           className="form-control"
+          value={editUser.district_id || ""}
+          onChange={(e) =>
+            setEditUser((prev) => ({
+              ...prev,
+              district_id: e.target.value,
+            }))
+          }
+          disabled={!editUser.region_id}
         >
-          {" "}
-          <option value="">Tumanni tanlash</option>
-          {districts.map((district) => (
-            <option key={district.id} value={district.id}>
-              {district.name}
-            </option>
-          ))}
+          {filteredDistricts.length > 0 ? (
+            filteredDistricts.map((district) => (
+              <option key={district.id} value={district.id}>
+                {district.name}
+              </option>
+            ))
+          ) : (
+            <option value="">Tumman topilmadi</option>
+          )}
         </select>
       </div>
       <div className="mb-3">
@@ -142,6 +238,13 @@ const EditUserForm = ({ user, regions, districts, onSave, onCancel }) => {
       </div>
       <button type="button" className="btn btn-primary" onClick={handleUpdate}>
         Saqlash
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary mx-3"
+        onClick={onCancel}
+      >
+        Ortga
       </button>
     </form>
   );
