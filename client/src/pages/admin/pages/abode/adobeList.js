@@ -4,7 +4,11 @@ import AdobeEdit from "./adobeEdit";
 import debounce from "lodash/debounce";
 import SearchItem from "../../../../components/search-item/searchItem";
 import { getDistricts, getRegions } from "../../../../http/usersApi";
-import { deleteTours, getTours } from "../../../../http/adobeApi";
+import {
+  deleteTours,
+  getTours,
+  updateTourStatus,
+} from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { getTourService } from "../../../../http/tourServices";
 import AdobeView from "./adobeView";
@@ -15,9 +19,9 @@ export default function AdobeList() {
   const [tourServices, setTourServices] = useState([]);
   const [regions, setRegions] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); // For title search
-  const [searchTerm1, setSearchTerm1] = useState(""); // For region search
-  const [searchTerm2, setSearchTerm2] = useState(""); // For price search
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm1, setSearchTerm1] = useState("");
+  const [searchTerm2, setSearchTerm2] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showViewModal, setShowViewModal] = useState(false);
   const [postsPerPage] = useState(10);
@@ -100,6 +104,25 @@ export default function AdobeList() {
         }
       })
       .catch((error) => console.error("Error deleting tour:", error));
+  };
+
+  const handleUpdateStatus = (id, newStatus) => {
+    updateTourStatus(id, newStatus)
+      .then((response) => {
+        if (response.data.Status) {
+          setTours((prevTours) =>
+            prevTours.map((tour) =>
+              tour.id === id ? { ...tour, status: newStatus } : tour
+            )
+          );
+          setFilteredPosts((prevFilteredPosts) =>
+            prevFilteredPosts.map((post) =>
+              post.id === id ? { ...post, status: newStatus } : post
+            )
+          );
+        }
+      })
+      .catch((error) => console.error("Error updating status:", error));
   };
 
   const getRegionName = (id) => {
@@ -202,7 +225,11 @@ export default function AdobeList() {
   return (
     <div className="container-fluid px-4">
       {showViewModal && (
-        <AdobeView adobe={selectedAdobe} onClose={handleCloseViewModal} />
+        <AdobeView
+          adobe={selectedAdobe}
+          onUpdateStatus={handleUpdateStatus} // Pass handler here
+          onClose={handleCloseViewModal}
+        />
       )}
       {editMode ? (
         <AdobeEdit
@@ -264,11 +291,19 @@ export default function AdobeList() {
                         <button className="btn btn-warning" disabled>
                           Jarayonda
                         </button>
-                      ) : (
+                      ) : c.status === "1" || c.status === 1 ? (
                         <button className="btn btn-success" disabled>
                           Tasdiqlandi
                         </button>
-                      )}
+                      ) : c.status === "2" || c.status === 2 ? (
+                        <button className="btn btn-info" disabled>
+                          Qayta yuborildi
+                        </button>
+                      ) : c.status === "3" || c.status === 3 ? (
+                        <button className="btn btn-danger" disabled>
+                          Bekor qilindi
+                        </button>
+                      ) : null}
                     </div>
                   </td>
                   <td className="d-flex justify-content-between align-items-center">
@@ -283,22 +318,26 @@ export default function AdobeList() {
                     <div>
                       <button
                         onClick={() => handleView(c)}
-                        className="btn btn-primary "
+                        className="btn btn-primary me-3"
                       >
                         <i className="fas fa-eye"></i>
                       </button>
-                      <button
-                        onClick={() => handleEdit(c)}
-                        className="btn btn-warning mx-3"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(c.id)}
-                        className="btn btn-danger"
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </button>
+                      {["admin", "user"].includes(userDetails.role) && (
+                        <button
+                          onClick={() => handleEdit(c)}
+                          className="btn btn-warning me-3"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                      )}
+                      {["admin"].includes(userDetails.role) && (
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          className="btn btn-danger"
+                        >
+                          <i className="fas fa-trash-alt"></i>
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

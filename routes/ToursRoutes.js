@@ -87,6 +87,37 @@ router.post("/add_tour", upload.array("images"), (req, res) => {
     });
   });
 });
+router.put("/tour/status/:id", (req, res) => {
+  const tourID = req.params.id;
+  const { status } = req.body;
+
+  // Validate status
+  if (status === undefined) {
+    return res.status(400).json({ Status: false, Error: "Status is required" });
+  }
+
+  const sql = "UPDATE tours SET status = ? WHERE id = ?";
+  const params = [status, tourID];
+
+  DB.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("SQL Error:", err);
+      return res.status(500).json({ Status: false, Error: "Query error" });
+    }
+
+    if (result.affectedRows > 0) {
+      return res.json({
+        Status: true,
+        Message: "Tour status updated successfully",
+      });
+    } else {
+      return res.status(404).json({
+        Status: false,
+        Error: "Tour not found or status not updated",
+      });
+    }
+  });
+});
 
 // Route to delete a tour by ID
 router.delete("/tour/:id", (req, res) => {
