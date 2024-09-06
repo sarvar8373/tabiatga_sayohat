@@ -6,7 +6,9 @@ const StatusPanel = ({ status }) => {
   const steps = [
     { value: 0, label: "Jarayonda" },
     { value: 30, label: "Ko'rildi" },
-    { value: 1, label: "Tasdiqlandi" },
+    ...(status === 2 ? [{ value: 2, label: "Qayta yuborildi" }] : []),
+    ...(status === 3 ? [{ value: 3, label: "Bekor qilindi" }] : []),
+    ...(status !== 3 ? [{ value: 1, label: "Tasdiqlandi" }] : []),
   ];
 
   // Determine the current step index

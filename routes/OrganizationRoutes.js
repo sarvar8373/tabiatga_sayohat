@@ -103,6 +103,68 @@ router.get("/organizations/:userId", (req, res) => {
   });
 });
 
+router.put("/organization/status/:id", (req, res) => {
+  const organizationId = req.params.id;
+  const { status } = req.body;
+
+  // Validate status
+  if (status === undefined) {
+    return res.status(400).json({ Status: false, Error: "Status is required" });
+  }
+
+  const sql = "UPDATE organization_details SET status  = ? WHERE id = ?";
+  const params = [status, organizationId];
+
+  DB.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("SQL Error:", err);
+      return res.status(500).json({ Status: false, Error: "Query error" });
+    }
+
+    if (result.affectedRows > 0) {
+      return res.json({
+        Status: true,
+        Message: "Tour status updated successfully",
+      });
+    } else {
+      return res.status(404).json({
+        Status: false,
+        Error: "Tour not found or status not updated",
+      });
+    }
+  });
+});
+router.put("/organization/cause/:id", (req, res) => {
+  const organizationId = req.params.id;
+  const { cause } = req.body;
+
+  // Validate cause
+  if (cause === undefined) {
+    return res.status(400).json({ Status: false, Error: "Cause is required" });
+  }
+
+  const sql = "UPDATE organization_details SET comment = ? WHERE id = ?";
+  const params = [cause, organizationId];
+
+  DB.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("SQL Error:", err);
+      return res.status(500).json({ Status: false, Error: "Query error" });
+    }
+
+    if (result.affectedRows > 0) {
+      return res.json({
+        Status: true,
+        Message: "Tour cause updated successfully",
+      });
+    } else {
+      return res.status(404).json({
+        Status: false,
+        Error: "Tour not found or cause not updated",
+      });
+    }
+  });
+});
 // Update organization details
 router.put("/organizations/:id", (req, res) => {
   const organizationId = req.params.id;

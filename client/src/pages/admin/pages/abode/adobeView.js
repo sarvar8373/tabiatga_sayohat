@@ -1,22 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button, Form } from "react-bootstrap";
 import StatusPanel from "../../../../components/status/statusPanel";
+import { useAuth } from "../../../../context/AuthContext";
 
-const AdobeView = ({ adobe, onClose, onUpdateStatus }) => {
-  // Manage local state for status
+const AdobeView = ({ adobe, onClose, onUpdateStatus, onUpdateCause }) => {
+  // Manage local state for status, cause, and form validity
   const [status, setStatus] = useState(adobe?.status);
+  const [cause, setCause] = useState(adobe?.tour || "");
+  const [isCauseRequired, setIsCauseRequired] = useState(false);
+  const [isCauseValid, setIsCauseValid] = useState(true); // Track if the cause is valid
+  const { userDetails } = useAuth();
 
   // Handle status update
   const handleStatusChange = (newStatus) => {
     setStatus(newStatus);
-    onUpdateStatus(adobe.id, newStatus); // Call parent handler to update status
+
+    // Call parent handler to update status
+    onUpdateStatus(adobe.id, newStatus);
   };
+
+  // Handle cause change
+  const handleCauseChange = (e) => {
+    const newCause = e.target.value;
+    setCause(newCause);
+
+    // Update cause validity
+    setIsCauseValid(newCause.trim() !== "");
+  };
+
+  const handleUpdateCause = (newCause) => {
+    onUpdateCause(adobe.id, newCause); // Call parent handler to update cause
+  };
+
+  useEffect(() => {
+    // Update cause validity when cause or requirement changes
+    setIsCauseValid(isCauseRequired || cause.trim() !== ``);
+  }, [cause, isCauseRequired]);
 
   if (!adobe) return null;
 
   return (
-    <Modal show onHide={onClose} centered>
+    <Modal size="lg" show onHide={onClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>Maskan passporti</Modal.Title>
       </Modal.Header>
@@ -42,29 +67,55 @@ const AdobeView = ({ adobe, onClose, onUpdateStatus }) => {
         <p>
           <strong>Tuman:</strong> {adobe.district_id}
         </p>
+
+        {["admin", "region"].includes(userDetails.role) && (
+          <Form.Group className="mb-3" controlId="formCause">
+            <Form.Label>Sababi</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={cause}
+              onChange={handleCauseChange}
+              onBlur={() => handleUpdateCause(cause)}
+              required
+            />
+          </Form.Group>
+        )}
         <StatusPanel status={status} />
       </Modal.Body>
       <Modal.Footer>
-        {status !== 1 && (
-          <Button
-            variant="outline-success"
-            onClick={() => handleStatusChange(1)}
-          >
-            Tasdiqlash
-          </Button>
-        )}
-        {status !== 2 && (
-          <Button variant="outline-info" onClick={() => handleStatusChange(2)}>
-            Qayta yuborish
-          </Button>
-        )}
-        {status !== 3 && (
-          <Button
-            variant="outline-danger"
-            onClick={() => handleStatusChange(3)}
-          >
-            Bekor qilish
-          </Button>
+        {["admin", "region"].includes(userDetails.role) && (
+          <div>
+            {status !== 1 && (
+              <Button
+                variant="outline-success"
+                className="ms-2"
+                onClick={() => handleStatusChange(1)}
+              >
+                Tasdiqlash
+              </Button>
+            )}
+            {status !== 2 && (
+              <Button
+                variant="outline-info"
+                className="ms-2"
+                onClick={() => handleStatusChange(2)}
+                disabled={!isCauseValid} // Disable if cause is required and not valid
+              >
+                Qayta yuborish
+              </Button>
+            )}
+            {status !== 3 && (
+              <Button
+                variant="outline-danger"
+                className="ms-2"
+                onClick={() => handleStatusChange(3)}
+                disabled={!isCauseValid} // Disable if cause is required and not valid
+              >
+                Bekor qilish
+              </Button>
+            )}
+          </div>
         )}
         <Button variant="secondary" onClick={onClose}>
           Yopish
@@ -88,6 +139,7 @@ AdobeView.propTypes = {
   }).isRequired,
   onClose: PropTypes.func.isRequired,
   onUpdateStatus: PropTypes.func.isRequired,
+  onUpdateCause: PropTypes.func.isRequired,
 };
 
 export default AdobeView;

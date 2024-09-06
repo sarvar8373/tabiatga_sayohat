@@ -119,6 +119,38 @@ router.put("/tour/status/:id", (req, res) => {
   });
 });
 
+router.put("/tour/cause/:id", (req, res) => {
+  const tourID = req.params.id;
+  const { cause } = req.body;
+
+  // Validate cause
+  if (cause === undefined) {
+    return res.status(400).json({ Status: false, Error: "Cause is required" });
+  }
+
+  const sql = "UPDATE tours SET tour = ? WHERE id = ?";
+  const params = [cause, tourID];
+
+  DB.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("SQL Error:", err);
+      return res.status(500).json({ Status: false, Error: "Query error" });
+    }
+
+    if (result.affectedRows > 0) {
+      return res.json({
+        Status: true,
+        Message: "Tour cause updated successfully",
+      });
+    } else {
+      return res.status(404).json({
+        Status: false,
+        Error: "Tour not found or cause not updated",
+      });
+    }
+  });
+});
+
 // Route to delete a tour by ID
 router.delete("/tour/:id", (req, res) => {
   const tourId = req.params.id;

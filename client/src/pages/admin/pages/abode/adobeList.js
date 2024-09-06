@@ -7,6 +7,7 @@ import { getDistricts, getRegions } from "../../../../http/usersApi";
 import {
   deleteTours,
   getTours,
+  updateTourCause,
   updateTourStatus,
 } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
@@ -124,6 +125,24 @@ export default function AdobeList() {
       })
       .catch((error) => console.error("Error updating status:", error));
   };
+  const handleUpdateCause = (id, newCause) => {
+    updateTourCause(id, newCause)
+      .then((response) => {
+        if (response.data.Status) {
+          setTours((prevTours) =>
+            prevTours.map((tour) =>
+              tour.id === id ? { ...tour, cause: newCause } : tour
+            )
+          );
+          setFilteredPosts((prevFilteredPosts) =>
+            prevFilteredPosts.map((post) =>
+              post.id === id ? { ...post, status: newCause } : post
+            )
+          );
+        }
+      })
+      .catch((error) => console.error("Error updating status:", error));
+  };
 
   const getRegionName = (id) => {
     const region = regions.find((r) => r.id === id);
@@ -227,7 +246,8 @@ export default function AdobeList() {
       {showViewModal && (
         <AdobeView
           adobe={selectedAdobe}
-          onUpdateStatus={handleUpdateStatus} // Pass handler here
+          onUpdateStatus={handleUpdateStatus}
+          onUpdateCause={handleUpdateCause}
           onClose={handleCloseViewModal}
         />
       )}

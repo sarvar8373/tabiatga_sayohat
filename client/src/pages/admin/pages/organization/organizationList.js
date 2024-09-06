@@ -3,6 +3,8 @@ import { getDistricts, getRegions, getUsers } from "../../../../http/usersApi";
 import {
   deleteOrganization,
   getOrganizations,
+  updateOrganizationCause,
+  updateOrganizationStatus,
 } from "../../../../http/organizationApi";
 import debounce from "lodash/debounce";
 import OrganizationEdit from "./organizationEdit";
@@ -81,13 +83,53 @@ export default function OrganizationList() {
         if (result.data.Status) {
           setOrganizations(result.data.Result);
           setFilteredPosts(result.data.Result);
+          console.log(result.data.Result);
         } else {
           alert(result.data.Error);
         }
       })
       .catch((err) => console.log(err));
   }, []);
-
+  const handleUpdateStatus = (id, newStatus) => {
+    updateOrganizationStatus(id, newStatus)
+      .then((response) => {
+        if (response.data.Status) {
+          setOrganizations((prevOrganization) =>
+            prevOrganization.map((organization) =>
+              organization.id === id
+                ? { ...organization, status: newStatus }
+                : organization
+            )
+          );
+          setFilteredPosts((prevFilteredPosts) =>
+            prevFilteredPosts.map((post) =>
+              post.id === id ? { ...post, status: newStatus } : post
+            )
+          );
+        }
+      })
+      .catch((error) => console.error("Error updating status:", error));
+  };
+  const handleUpdateCause = (id, newCause) => {
+    updateOrganizationCause(id, newCause)
+      .then((response) => {
+        if (response.data.Status) {
+          setOrganizations((prevOrganization) =>
+            prevOrganization.map((organization) =>
+              organization.id === id
+                ? { ...organization, cause: newCause }
+                : organization
+            )
+          );
+          setFilteredPosts((prevFilteredPosts) =>
+            prevFilteredPosts.map((post) =>
+              post.id === id ? { ...post, status: newCause } : post
+            )
+          );
+        }
+      })
+      .catch((error) => console.error("Error updating status:", error));
+  };
   const handleDelete = (id) => {
     deleteOrganization(id)
       .then((response) => {
@@ -193,6 +235,8 @@ export default function OrganizationList() {
       {showViewModal && (
         <OrganizationView
           organization={selectedOrganization}
+          onUpdateStatus={handleUpdateStatus}
+          onUpdateCause={handleUpdateCause}
           onClose={handleCloseViewModal}
         />
       )}
@@ -264,11 +308,19 @@ export default function OrganizationList() {
                         <button className="btn btn-warning" disabled>
                           Jarayonda
                         </button>
-                      ) : (
+                      ) : c.status === "1" || c.status === 1 ? (
                         <button className="btn btn-success" disabled>
                           Tasdiqlandi
                         </button>
-                      )}
+                      ) : c.status === "2" || c.status === 2 ? (
+                        <button className="btn btn-info" disabled>
+                          Qayta yuborildi
+                        </button>
+                      ) : c.status === "3" || c.status === 3 ? (
+                        <button className="btn btn-danger" disabled>
+                          Bekor qilindi
+                        </button>
+                      ) : null}
                     </div>
                     <div>
                       <button

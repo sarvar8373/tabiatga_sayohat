@@ -23,6 +23,10 @@ export function putTour(id, updatedPost) {
     },
   });
 }
+
+export function updateTourCause(id, cause) {
+  return AxiosClient.put(`/tours/tour/cause/${id}`, { cause });
+}
 export function updateTourStatus(id, status) {
   return AxiosClient.put(`/tours/tour/status/${id}`, { status });
 }

@@ -15,3 +15,9 @@ export function deleteOrganization(id) {
 export function putOrganization(id, updatedPost) {
   return AxiosClient.put(`/organization/organizations/${id}`, updatedPost);
 }
+export function updateOrganizationCause(id, cause) {
+  return AxiosClient.put(`/organization/organization/cause/${id}`, { cause });
+}
+export function updateOrganizationStatus(id, status) {
+  return AxiosClient.put(`/organization/organization/status/${id}`, { status });
+}
