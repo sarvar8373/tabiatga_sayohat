@@ -10,6 +10,8 @@ import {
 } from "../../../../http/usersApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { postNotification } from "../../../../http/notificationApi";
+import { getTourService } from "../../../../http/tourServices";
+import Select from "react-select";
 
 export default function Organization() {
   const { userDetails } = useAuth();
@@ -20,6 +22,7 @@ export default function Organization() {
   const [filteredRegions, setFilteredRegions] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [authors, setAuthors] = useState([]);
+  const [tourServices, setTourServices] = useState([]);
   const [saved, setSaved] = useState(false);
   const [formData, setFormData] = useState({
     inn_pinfl: "",
@@ -36,7 +39,7 @@ export default function Organization() {
     director_pinfl: "",
     chief_accountant: "",
     goods_issued_by: "",
-    excise_tax: "",
+    excise_tax: [],
     notification_id: "",
     user_id: userDetails.id,
     status: "0",
@@ -52,6 +55,20 @@ export default function Organization() {
       })
       .catch((err) => {
         setError("Error fetching regions.");
+        console.error(err);
+      });
+  }, []);
+  useEffect(() => {
+    getTourService()
+      .then((response) => {
+        if (response.data.Status) {
+          setTourServices(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Error fetching tour services.");
         console.error(err);
       });
   }, []);
@@ -177,7 +194,14 @@ export default function Organization() {
       alert("Error adding organization. Please try again.");
     }
   };
+  const formatOptions = (services) => {
+    return services.map((service) => ({
+      value: service.id,
+      label: service.name,
+    }));
+  };
 
+  const options = formatOptions(tourServices);
   return (
     <div className="container-fluid px-4">
       <h2 className="mt-4">Tashkilot qo'shish</h2>
@@ -202,7 +226,8 @@ export default function Organization() {
                 INN/PINFL
               </label>
               <input
-                type="text"
+                type="number"
+                maxLength="14"
                 name="inn_pinfl"
                 placeholder="INN/PINFL *"
                 value={formData.inn_pinfl || ""}
@@ -256,8 +281,9 @@ export default function Organization() {
                 Telefon
               </label>
               <input
-                type="text"
+                type="tel"
                 name="phone"
+                pattern="[+]{1}[9]{1}[9]{1}[8]{1}[0-9]{9}"
                 placeholder="Telefon"
                 value={formData.phone || ""}
                 onChange={handleChange}
@@ -411,6 +437,18 @@ export default function Organization() {
               <label htmlFor="excise_tax" className="mb-2">
                 Taqdim etilgan xizmatlar
               </label>
+              <Select
+                id="excise_tax"
+                name="excise_tax"
+                placeholder="Faoliyatni tanglang"
+                value={options.filter((option) =>
+                  formData.excise_tax.includes(option.value)
+                )}
+                onChange={handleChange}
+                options={options}
+                isMulti
+                className="form-control"
+              />
               <input
                 type="text"
                 name="excise_tax"

@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import { Modal, Button, Form } from "react-bootstrap";
 import { useAuth } from "../../../../context/AuthContext";
 import StatusPanel from "../../../../components/status/statusPanel";
+import { getUsers } from "../../../../http/usersApi";
 
 const OrganizationView = ({
   organization,
@@ -14,9 +15,23 @@ const OrganizationView = ({
 }) => {
   const [status, setStatus] = useState(organization?.status);
   const [cause, setCause] = useState(organization?.comment || "");
+  const [authors, setAuthors] = useState([]);
   const [isCauseRequired, setIsCauseRequired] = useState(false);
   const [isCauseValid, setIsCauseValid] = useState(true); // Track if the cause is valid
   const { userDetails } = useAuth();
+
+  useEffect(() => {
+    getUsers()
+      .then((userResult) => {
+        if (userResult.data.Status) {
+          setAuthors(userResult.data.Result);
+        } else {
+          alert(userResult.data.Error);
+        }
+      })
+      .catch((err) => console.log(err));
+  }, []);
+
   const handleStatusChange = (newStatus) => {
     setStatus(newStatus);
 
@@ -38,6 +53,7 @@ const OrganizationView = ({
   };
 
   useEffect(() => {
+    console.log(organization);
     setIsCauseValid(isCauseRequired || cause.trim() !== ``);
   }, [cause, isCauseRequired]);
 
@@ -65,7 +81,14 @@ const OrganizationView = ({
           <strong>Address:</strong> {organization.address}
         </p>
         <p>
-          <strong>User:</strong> {organization.user_id}
+          <strong>Foydalanuvchi:</strong>{" "}
+          {
+            authors.find((author) => author.id === organization.user_id)
+              ?.full_name
+          }
+        </p>
+        <p>
+          <strong>Sababi:</strong> {organization.comment}
         </p>
         {["admin", "region"].includes(userDetails.role) && (
           <Form.Group className="mb-3" controlId="formCause">

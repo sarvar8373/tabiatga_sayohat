@@ -4,7 +4,7 @@ import { postTour } from "../../../../http/adobeApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { getTourService } from "../../../../http/tourServices";
 import { postNotification } from "../../../../http/notificationApi";
-
+import Select from "react-select";
 const Adobe = () => {
   const [tourServices, setTourServices] = useState([]);
   const [regions, setRegions] = useState([]);
@@ -22,7 +22,7 @@ const Adobe = () => {
     country: "",
     status: "0",
     notification_id: "",
-    tourism_service_id: "", // Use string to match select values
+    tourism_service_id: [], // Use string to match select values
   });
   const [images, setImages] = useState([]); // Change to handle multiple images
   const { userDetails } = useAuth();
@@ -127,14 +127,22 @@ const Adobe = () => {
   }, [selectedRegion]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "region_id") {
-      setSelectedRegion(value);
-    } else if (name === "district_id") {
-      setSelectedDistrict(value);
-    } else {
-      setFormData({ ...formData, [name]: value });
+    if (e && e.target) {
+      const { name, value } = e.target;
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
     }
+  };
+
+  const handleSelectChange = (selectedOptions) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      tourism_service_id: selectedOptions
+        ? selectedOptions.map((option) => option.value)
+        : [],
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -204,6 +212,14 @@ const Adobe = () => {
         console.error("Error:", error);
       });
   };
+  const formatOptions = (services) => {
+    return services.map((service) => ({
+      value: service.id,
+      label: service.name,
+    }));
+  };
+
+  const options = formatOptions(tourServices);
 
   return (
     <div className="container-fluid px-4">
@@ -230,22 +246,21 @@ const Adobe = () => {
             />
           </div>
           <div className="single-field">
-            <label htmlFor="tourism_service_id">Maskan turi</label>
-            <select
+            <label htmlFor="tourism_service_id">Faoliyat turi</label>
+            <Select
               id="tourism_service_id"
               name="tourism_service_id"
-              value={formData.tourism_service_id}
-              onChange={handleChange}
+              placeholder="Faoliyatni tanglang"
+              value={options.filter((option) =>
+                formData.tourism_service_id.includes(option.value)
+              )}
+              onChange={handleSelectChange}
+              options={options}
+              isMulti
               className="form-control"
-            >
-              <option value="">Faoliyat turi</option>
-              {tourServices.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
+
           <div className="single-field">
             <label htmlFor="price">Narxi</label>
             <input

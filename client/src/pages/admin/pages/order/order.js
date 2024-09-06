@@ -6,6 +6,7 @@ import debounce from "lodash/debounce";
 import { useAuth } from "../../../../context/AuthContext";
 import { getUserID, getUsers } from "../../../../http/usersApi";
 import { deleteOrder, getOrder } from "../../../../http/orderApi";
+import OrderView from "./orderView";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -144,29 +145,33 @@ export default function Orders() {
 
     setFilterOrders(filtered);
   }, [orders, allUsers, searchTerm, searchTerm1, searchTerm3]);
-  const handleSave = (updatedOrder) => {
-    if (updatedOrder && updatedOrder.id) {
-      setOrders((prevUser) => {
-        const updatedOrders = prevUser.map((order) =>
-          order.id === updatedOrder.id ? updatedOrder : order
-        );
-        return updatedOrders;
-      });
+  // const handleSave = (updatedOrder) => {
+  //   if (updatedOrder && updatedOrder.id) {
+  //     setOrders((prevUser) => {
+  //       const updatedOrders = prevUser.map((order) =>
+  //         order.id === updatedOrder.id ? updatedOrder : order
+  //       );
+  //       return updatedOrders;
+  //     });
 
-      setFilterOrders((prevFilteredPosts) => {
-        const updatedFilteredPosts = prevFilteredPosts.map((order) =>
-          order.id === updatedOrder.id ? updatedOrder : order
-        );
-        return updatedFilteredPosts;
-      });
-    }
-    setEditMode(false);
-  };
+  //     setFilterOrders((prevFilteredPosts) => {
+  //       const updatedFilteredPosts = prevFilteredPosts.map((order) =>
+  //         order.id === updatedOrder.id ? updatedOrder : order
+  //       );
+  //       return updatedFilteredPosts;
+  //     });
+  //   }
+  //   setEditMode(false);
+  // };
   const handleView = (order) => {
     if (order) {
       setSelectedOrder(order);
       setEditMode(true);
     }
+  };
+  const handleCloseEditModal = () => {
+    setEditMode(false);
+    setSelectedOrder(null);
   };
   useEffect(() => {
     const debouncedSearch = debounce(() => {
@@ -181,71 +186,77 @@ export default function Orders() {
   return (
     <div className="container-fluid">
       {editMode ? (
-        <p></p>
+        <OrderView
+          order={selectedOrder}
+          users={users}
+          userPhone={userPhone}
+          tourPrice={tourPrice}
+          tours={tours}
+          onClose={handleCloseEditModal} // Use onClose here
+        />
       ) : (
         <>
           <h1>Buyurtmalar</h1>
-          {loading && <p>Loading...</p>}
           {error && <p className="text-danger">{error}</p>}
-          {!loading && !error && (
-            <table className="table table-striped">
-              <thead className="table-dark">
-                <tr>
-                  <th>ID</th>
-                  <th>
-                    {" "}
-                    <SearchItem
-                      searchTerm={searchTerm}
-                      setSearchTerm={setSearchTerm}
-                      handleSearch={handleSearch}
-                      placeholder="Xaridor"
-                      style={{ width: "50%" }}
-                    />
-                  </th>
-                  <th>Telefon raqam</th>
-                  <th>Maskan nomi</th>
-                  <th>Soni</th>
-                  <th>Narxi</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentPosts.map((order) => (
-                  <tr key={order.id}>
-                    <td>{order.id}</td>
-                    <td>{users[order.user_id]}</td>
-                    <td>{userPhone[order.user_id]}</td>
-                    <td>{tours[order.tour_id]}</td>
-                    <td>{order.quantity}</td>
-                    <td>{tourPrice[order.tour_id]}</td>
-                    <td className="d-flex justify-content-between">
-                      <button className="btn btn-danger" disabled>
-                        {order && order.status === "pending" ? (
-                          <span>Tasdiqlanmagan</span>
-                        ) : (
-                          <span>Tasdiqlangan</span>
-                        )}
+
+          <table className="table table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>
+                  {" "}
+                  <SearchItem
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    handleSearch={handleSearch}
+                    placeholder="Xaridor"
+                    style={{ width: "50%" }}
+                  />
+                </th>
+                <th>Telefon raqam</th>
+                <th>Maskan nomi</th>
+                <th>Soni</th>
+                <th>Narxi</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentPosts.map((order) => (
+                <tr key={order.id}>
+                  <td>{order.id}</td>
+                  <td>{users[order.user_id]}</td>
+                  <td>{userPhone[order.user_id]}</td>
+                  <td>{tours[order.tour_id]}</td>
+                  <td>{order.quantity}</td>
+                  <td>{tourPrice[order.tour_id]}</td>
+                  <td className="d-flex justify-content-between">
+                    <button className="btn btn-danger" disabled>
+                      {order && order.status === "pending" ? (
+                        <span>Tasdiqlanmagan</span>
+                      ) : (
+                        <span>Tasdiqlangan</span>
+                      )}
+                    </button>
+                    <div>
+                      <button
+                        onClick={() => handleView(order)}
+                        className="btn btn-primary mx-3"
+                      >
+                        <i className="fas fa-eye"></i>
                       </button>
-                      <div>
-                        <button
-                          onClick={() => handleView(order)}
-                          className="btn btn-primary mx-3"
-                        >
-                          <i className="fas fa-eye"></i>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(order.id)}
-                          className="btn btn-danger"
-                        >
-                          <i className="fas fa-trash-alt"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                      <button
+                        onClick={() => handleDelete(order.id)}
+                        className="btn btn-danger"
+                      >
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
           <div className="gane-pagination mt-30 text-center">
             <ul>
               {[...Array(totalPages)].map((_, index) => (

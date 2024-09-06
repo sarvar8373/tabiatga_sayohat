@@ -67,7 +67,11 @@ const AdobeView = ({ adobe, onClose, onUpdateStatus, onUpdateCause }) => {
         <p>
           <strong>Tuman:</strong> {adobe.district_id}
         </p>
-
+        {["admin", "user"].includes(userDetails.role) && (
+          <p>
+            <strong>Sababi:</strong> {adobe.tour}
+          </p>
+        )}
         {["admin", "region"].includes(userDetails.role) && (
           <Form.Group className="mb-3" controlId="formCause">
             <Form.Label>Sababi</Form.Label>

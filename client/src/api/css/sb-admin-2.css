@@ -153,7 +153,7 @@
   overflow: hidden;
   position: relative;
   z-index: 4;
-  box-shadow: 0px 5px 50px 0px #6c44fc, 0px 0px 0px 7px rgba(107, 74, 255, 0.5);
+  box-shadow: 0px 5px 50px 0px #0e71c8, 0px 0px 0px 7px rgba(19, 127, 212, 0.4);
 }
 @media screen and (max-width: 576px) {
   .profile-card__img {
@@ -178,7 +178,7 @@
 .profile-card__name {
   font-weight: 700;
   font-size: 24px;
-  color: #6944ff;
+  color: #0e71c8;
   margin-bottom: 15px;
 }
 .profile-card__txt {

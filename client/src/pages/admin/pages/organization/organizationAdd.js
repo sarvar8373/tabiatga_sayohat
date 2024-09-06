@@ -7,6 +7,8 @@ import {
 } from "../../../../http/usersApi";
 import { useAuth } from "../../../../context/AuthContext";
 import { postNotification } from "../../../../http/notificationApi";
+import Select from "react-select";
+import { getTourService } from "../../../../http/tourServices";
 
 export default function OrganizationAdd() {
   const [regions, setRegions] = useState([]);
@@ -15,6 +17,7 @@ export default function OrganizationAdd() {
   const [error, setError] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
   const [filteredRegions, setFilteredRegions] = useState([]);
+  const [tourServices, setTourServices] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [formData, setFormData] = useState({
     inn_pinfl: "",
@@ -47,7 +50,20 @@ export default function OrganizationAdd() {
         console.error(err);
       });
   }, []);
-
+  useEffect(() => {
+    getTourService()
+      .then((response) => {
+        if (response.data.Status) {
+          setTourServices(response.data.Result);
+        } else {
+          setError(response.data.Error);
+        }
+      })
+      .catch((err) => {
+        setError("Error fetching tour services.");
+        console.error(err);
+      });
+  }, []);
   useEffect(() => {
     if (selectedRegion) {
       getSelectRegion(selectedRegion)
@@ -121,7 +137,14 @@ export default function OrganizationAdd() {
       setSelectedDistrict("");
     }
   }, [regions, userDetails]);
-
+  const handleSelectChange = (selectedOptions) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      excise_tax: selectedOptions
+        ? selectedOptions.map((option) => option.value)
+        : [],
+    }));
+  };
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -176,7 +199,14 @@ export default function OrganizationAdd() {
       alert("Error adding organization. Please try again.");
     }
   };
+  const formatOptions = (services) => {
+    return services.map((service) => ({
+      value: service.id,
+      label: service.name,
+    }));
+  };
 
+  const options = formatOptions(tourServices);
   return (
     <div className="container-fluid px-4">
       <h2 className="mt-4">Tashkilot qo'shish</h2>
@@ -295,12 +325,17 @@ export default function OrganizationAdd() {
               />
             </div>
             <div className="single-field half-field-last">
-              <input
-                type="text"
+              <Select
+                id="excise_tax"
                 name="excise_tax"
-                placeholder="Taqdim etilgan xizmatlar"
-                value={formData.excise_tax}
-                onChange={handleChange}
+                placeholder="Faoliyatni tanglang"
+                value={options.filter((option) =>
+                  formData.excise_tax.includes(option.value)
+                )}
+                onChange={handleSelectChange}
+                options={options}
+                isMulti
+                className="form-control"
               />
             </div>
             {userDetails.role === "admin" && (
