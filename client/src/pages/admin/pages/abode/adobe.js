@@ -194,7 +194,7 @@ const Adobe = () => {
             description: "",
             price: "",
             price_description: "",
-            tourism_service_id: "",
+            tourism_service_id: [],
             country: "",
             status: "0",
             notification_id: "",

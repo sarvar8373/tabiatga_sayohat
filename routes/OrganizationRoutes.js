@@ -14,7 +14,7 @@ router.post("/add_organization", (req, res) => {
     region_id,
     district_id,
     director_name,
-    excise_tax,
+    excise_tax, // This should be an array
     user_id,
     notification_id,
     status,
@@ -26,15 +26,17 @@ router.post("/add_organization", (req, res) => {
       .json({ Status: false, Error: "Required fields are missing" });
   }
 
+  const excise_tax_json = JSON.stringify(excise_tax); // Convert array to JSON string
+
   const sql = `
   INSERT INTO organization_details 
   (
     user_id, inn_pinfl, org_name, address, phone, 
-   mfo, region_id, district_id, director_name, 
-   excise_tax, notification_id, status
+    mfo, region_id, district_id, director_name, 
+    excise_tax, notification_id, status
   ) 
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`;
+  `;
 
   DB.query(
     sql,
@@ -48,8 +50,8 @@ router.post("/add_organization", (req, res) => {
       region_id,
       district_id,
       director_name,
-      excise_tax,
-      notification_id, // Use null if notification_id is not provided
+      excise_tax_json, // Insert JSON string
+      notification_id,
       status,
     ],
     (err, result) => {
